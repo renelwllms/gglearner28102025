@@ -1,0 +1,575 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  Table,
+  Button,
+  Message,
+  Modal,
+  Card,
+  Space,
+  Popconfirm,
+  Notification,
+  Tag,
+  Collapse,
+  Select,
+  Typography,
+  Statistic,
+  Grid,
+  Empty,
+  Input,
+} from '@arco-design/web-react';
+import * as services from '@/services';
+import {
+  IconPlus,
+  IconRefresh,
+  IconEdit,
+  IconDelete,
+  IconDown,
+  IconCopy,
+  IconDownload,
+  IconFile,
+} from '@arco-design/web-react/icon';
+import ExcelJS from 'exceljs';
+
+const { Title, Text } = Typography;
+const { Row, Col } = Grid;
+const CollapseItem = Collapse.Item;
+const Option = Select.Option;
+
+const MicrocredentialList = () => {
+  const [groups, setGroups] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<any>(null);
+  const [selectedCourseIds, setSelectedCourseIds] = useState<number[]>([]);
+  const [groupName, setGroupName] = useState<string>('');
+  const [notificationEmail, setNotificationEmail] = useState<string>('');
+
+  useEffect(() => {
+    fetchGroups();
+    fetchCourses();
+  }, []);
+
+  const fetchGroups = async () => {
+    setLoading(true);
+    try {
+      const res = await services.microcredential.getGroups();
+      if (res?.code === 0) {
+        setGroups(res?.data || []);
+      } else {
+        Notification.error({
+          title: 'Error',
+          content: 'Failed to load microcredential groups.',
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load groups:', error);
+      Notification.error({
+        title: 'Error',
+        content: 'Failed to load microcredential groups.',
+        duration: 3000,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCourses = async () => {
+    try {
+      const res = await services.microcredential.getAvailableCourses();
+      if (res?.code === 0) {
+        setCourses(res?.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to load courses:', error);
+    }
+  };
+
+  const handleAdd = () => {
+    setEditingGroup(null);
+    setSelectedCourseIds([]);
+    setGroupName('');
+    setNotificationEmail('jorgia@thegetgroup.co.nz');
+    setModalVisible(true);
+  };
+
+  const handleEdit = (group: any) => {
+    setEditingGroup(group);
+    setSelectedCourseIds(group.Courses.map((c: any) => c.CourseID));
+    setGroupName(group.GroupName || '');
+    setNotificationEmail(group.NotificationEmail || 'jorgia@thegetgroup.co.nz');
+    setModalVisible(true);
+  };
+
+  const handleSave = async () => {
+    if (selectedCourseIds.length === 0) {
+      Message.warning('Please select at least one course');
+      return;
+    }
+
+    if (!groupName.trim()) {
+      Message.warning('Please enter a group name');
+      return;
+    }
+
+    if (!notificationEmail.trim()) {
+      Message.warning('Please enter a notification email');
+      return;
+    }
+
+    try {
+      if (editingGroup) {
+        // Update existing group
+        const res = await services.microcredential.updateGroup(
+          editingGroup.GroupId,
+          {
+            CourseIds: selectedCourseIds,
+            GroupName: groupName,
+            NotificationEmail: notificationEmail
+          }
+        );
+        if (res?.code === 0) {
+          Notification.success({
+            title: 'Success',
+            content: 'Microcredential group updated successfully',
+            duration: 3000,
+          });
+          setModalVisible(false);
+          fetchGroups();
+          fetchCourses();
+        } else {
+          Notification.error({
+            title: 'Error',
+            content: res?.message || 'Failed to update group',
+            duration: 3000,
+          });
+        }
+      } else {
+        // Create new group
+        const res = await services.microcredential.createGroup({
+          CourseIds: selectedCourseIds,
+          GroupName: groupName,
+          NotificationEmail: notificationEmail
+        });
+        if (res?.code === 0) {
+          Notification.success({
+            title: 'Success',
+            content: 'Microcredential group created successfully',
+            duration: 3000,
+          });
+          setModalVisible(false);
+          fetchGroups();
+          fetchCourses();
+        } else {
+          Notification.error({
+            title: 'Error',
+            content: res?.message || 'Failed to create group',
+            duration: 3000,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save group:', error);
+      Notification.error({
+        title: 'Error',
+        content: 'Failed to save microcredential group',
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleDelete = async (groupId: number) => {
+    try {
+      const res = await services.microcredential.deleteGroup(groupId);
+      if (res?.code === 0) {
+        Notification.success({
+          title: 'Success',
+          content: 'Microcredential group deleted successfully',
+          duration: 3000,
+        });
+        fetchGroups();
+        fetchCourses();
+      } else {
+        Notification.error({
+          title: 'Error',
+          content: res?.message || 'Failed to delete group',
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to delete group:', error);
+      Notification.error({
+        title: 'Error',
+        content: 'Failed to delete microcredential group',
+        duration: 3000,
+      });
+    }
+  };
+
+  const getCourseLevelColor = (level: number) => {
+    const colors: any = {
+      1: 'blue',
+      2: 'green',
+      3: 'orange',
+      4: 'red',
+    };
+    return colors[level] || 'gray';
+  };
+
+  // Duplicate/Clone group
+  const handleDuplicate = (group: any) => {
+    setEditingGroup(null); // Clear editing group so it creates new
+    setSelectedCourseIds(group.Courses.map((c: any) => c.CourseID));
+    setGroupName(`${group.GroupName} (Copy)`);
+    setNotificationEmail(group.NotificationEmail || 'jorgia@thegetgroup.co.nz');
+    setModalVisible(true);
+  };
+
+  // Export to Excel
+  const handleExport = async () => {
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Microcredential Groups');
+
+      // Define columns
+      worksheet.columns = [
+        { header: 'Group Name', key: 'GroupName', width: 40 },
+        { header: 'Course Count', key: 'CourseCount', width: 15 },
+        { header: 'Courses', key: 'Courses', width: 80 },
+      ];
+
+      // Style header row
+      worksheet.getRow(1).font = { bold: true, size: 12 };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF165DFF' },
+      };
+      worksheet.getRow(1).font = { ...worksheet.getRow(1).font, color: { argb: 'FFFFFFFF' } };
+
+      // Add data
+      groups.forEach((group) => {
+        const courseNames = group.Courses.map((c: any) => `${c.CourseName} (Level ${c.CourseLevel})`).join('; ');
+        worksheet.addRow({
+          GroupName: group.GroupName,
+          CourseCount: group.Courses.length,
+          Courses: courseNames,
+        });
+      });
+
+      // Add filters
+      worksheet.autoFilter = {
+        from: 'A1',
+        to: 'C1',
+      };
+
+      // Generate and download
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Microcredential_Groups_${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+
+      Notification.success({
+        title: 'Export Successful',
+        content: `${groups.length} microcredential groups exported to Excel`,
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      Notification.error({
+        title: 'Export Failed',
+        content: 'Failed to export microcredential groups. Please try again.',
+        duration: 3000,
+      });
+    }
+  };
+
+  // Calculate statistics
+  const statistics = useMemo(() => {
+    const totalGroups = groups.length;
+    const totalCourses = groups.reduce((sum, g) => sum + g.Courses.length, 0);
+    const avgCoursesPerGroup = totalGroups > 0 ? Math.round(totalCourses / totalGroups) : 0;
+    const level1Courses = groups.reduce((sum, g) => sum + g.Courses.filter((c: any) => c.CourseLevel === 1).length, 0);
+    const level2Courses = groups.reduce((sum, g) => sum + g.Courses.filter((c: any) => c.CourseLevel === 2).length, 0);
+    const level3Courses = groups.reduce((sum, g) => sum + g.Courses.filter((c: any) => c.CourseLevel === 3).length, 0);
+
+    return {
+      totalGroups,
+      totalCourses,
+      avgCoursesPerGroup,
+      level1Courses,
+      level2Courses,
+      level3Courses,
+    };
+  }, [groups]);
+
+  return (
+    <div style={{ padding: '20px' }}>
+      {/* Statistics Dashboard */}
+      <Row gutter={16} style={{ marginBottom: 20 }}>
+        <Col span={6}>
+          <Card>
+            <Statistic
+              title="Total Groups"
+              value={statistics.totalGroups}
+              prefix={<IconFile />}
+              styleValue={{ color: '#0FC6C2' }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card>
+            <Statistic
+              title="Total Courses"
+              value={statistics.totalCourses}
+              groupSeparator
+              styleValue={{ color: '#165DFF' }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card>
+            <Statistic
+              title="Avg Courses/Group"
+              value={statistics.avgCoursesPerGroup}
+              suffix="courses"
+              styleValue={{ color: '#722ED1' }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card>
+            <Statistic
+              title="Level 1-2 Courses"
+              value={statistics.level1Courses + statistics.level2Courses}
+              styleValue={{ color: '#F77234' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <Card>
+        <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Title heading={4}>Microcredential Groups Management</Title>
+          <Space>
+            <Button
+              type="outline"
+              icon={<IconDownload />}
+              onClick={handleExport}
+              disabled={groups.length === 0}
+            >
+              Export to Excel
+            </Button>
+            <Button type="primary" icon={<IconPlus />} onClick={handleAdd}>
+              Add New Group
+            </Button>
+            <Button icon={<IconRefresh />} onClick={() => { fetchGroups(); fetchCourses(); }}>
+              Refresh
+            </Button>
+          </Space>
+        </div>
+
+        <Text type="secondary" style={{ display: 'block', marginBottom: '20px' }}>
+          Microcredential groups are collections of courses that students must complete together to earn a microcredential certificate.
+          When a student completes all courses in a group, an email notification is automatically sent.
+        </Text>
+
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '50px' }}>Loading...</div>
+        ) : groups.length === 0 ? (
+          <Empty
+            icon={<IconFile style={{ fontSize: 64, color: '#165DFF' }} />}
+            description={
+              <Space direction="vertical" align="center">
+                <div style={{ fontSize: 16, fontWeight: 500 }}>No microcredential groups found</div>
+                <div style={{ color: '#86909C' }}>
+                  Get started by creating your first microcredential group
+                </div>
+                <Button type="primary" icon={<IconPlus />} onClick={handleAdd} style={{ marginTop: 10 }}>
+                  Add New Group
+                </Button>
+              </Space>
+            }
+          />
+        ) : (
+          <Collapse defaultActiveKey={['0']} expandIconPosition="right">
+            {groups.map((group, index) => (
+              <CollapseItem
+                key={group.GroupId}
+                header={
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                    <Space>
+                      <Title heading={6} style={{ margin: 0 }}>
+                        {group.GroupName}
+                      </Title>
+                      <Tag color="arcoblue">{group.Courses.length} Course{group.Courses.length !== 1 ? 's' : ''}</Tag>
+                    </Space>
+                  </div>
+                }
+                name={String(index)}
+                extra={
+                  <Space onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<IconEdit />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(group);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<IconCopy />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDuplicate(group);
+                      }}
+                    >
+                      Duplicate
+                    </Button>
+                    <Popconfirm
+                      title="Are you sure you want to delete this microcredential group?"
+                      onOk={(e) => {
+                        e?.stopPropagation();
+                        handleDelete(group.GroupId);
+                      }}
+                      onCancel={(e) => e?.stopPropagation()}
+                    >
+                      <Button
+                        type="text"
+                        size="small"
+                        status="danger"
+                        icon={<IconDelete />}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Delete
+                      </Button>
+                    </Popconfirm>
+                  </Space>
+                }
+              >
+                <div style={{ padding: '10px 20px' }}>
+                  <div style={{ marginBottom: '12px', padding: '10px', backgroundColor: '#e8f4ff', borderRadius: '4px', borderLeft: '3px solid #165DFF' }}>
+                    <Space direction="vertical" size={4}>
+                      <Text type="secondary" style={{ fontSize: '12px' }}>
+                        <strong>Notification Email:</strong> {group.NotificationEmail || 'jorgia@thegetgroup.co.nz'}
+                      </Text>
+                      <Text type="secondary" style={{ fontSize: '11px' }}>
+                        Email will be sent when students complete all courses in this group
+                      </Text>
+                    </Space>
+                  </div>
+
+                  <Table
+                    columns={[
+                      {
+                        title: 'Course Name',
+                        dataIndex: 'CourseName',
+                        key: 'CourseName',
+                      },
+                      {
+                        title: 'Level',
+                        dataIndex: 'CourseLevel',
+                        key: 'CourseLevel',
+                        render: (level) => (
+                          <Tag color={getCourseLevelColor(level)}>Level {level}</Tag>
+                        ),
+                      },
+                    ]}
+                    data={group.Courses}
+                    pagination={false}
+                    rowKey="CourseID"
+                    border={false}
+                  />
+                  <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f7f8fa', borderRadius: '4px' }}>
+                    <Text type="secondary">
+                      <strong>Note:</strong> Students must complete <strong>all {group.Courses.length} courses</strong> in this group to be eligible for the microcredential certificate.
+                    </Text>
+                  </div>
+                </div>
+              </CollapseItem>
+            ))}
+          </Collapse>
+        )}
+      </Card>
+
+      <Modal
+        title={editingGroup ? 'Edit Microcredential Group' : 'Create New Microcredential Group'}
+        visible={modalVisible}
+        onOk={handleSave}
+        onCancel={() => setModalVisible(false)}
+        autoFocus={false}
+        focusLock={true}
+        style={{ width: '650px' }}
+      >
+        <div style={{ marginBottom: '20px' }}>
+          <Text>
+            Configure the microcredential group settings, including the group name, notification email, and courses.
+          </Text>
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <Text bold>Group Name *</Text>
+          <Input
+            placeholder="Enter group name (e.g., GET Started Level 2)"
+            value={groupName}
+            onChange={(value) => setGroupName(value)}
+            style={{ width: '100%', marginTop: '8px' }}
+            allowClear
+          />
+        </div>
+
+        <div style={{ marginBottom: '16px' }}>
+          <Text bold>Notification Email *</Text>
+          <Input
+            placeholder="Enter notification email address"
+            value={notificationEmail}
+            onChange={(value) => setNotificationEmail(value)}
+            style={{ width: '100%', marginTop: '8px' }}
+            allowClear
+          />
+          <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginTop: '4px' }}>
+            Notifications will be sent to this email when students complete all courses in this group
+          </Text>
+        </div>
+
+        <div>
+          <Text bold>Courses *</Text>
+          <Select
+            mode="multiple"
+            placeholder="Select courses that must be completed"
+            value={selectedCourseIds}
+            onChange={(value) => setSelectedCourseIds(value)}
+            style={{ width: '100%', marginTop: '8px' }}
+            allowClear
+          >
+            {courses.map((course) => (
+              <Option key={course.CourseID} value={course.CourseID}>
+                <Space>
+                  <span>{course.CourseName}</span>
+                  <Tag color={getCourseLevelColor(course.CourseLevel)} size="small">
+                    Level {course.CourseLevel}
+                  </Tag>
+                  {course.IsInGroup === 1 && (
+                    <Tag color="orange" size="small">Already in a group</Tag>
+                  )}
+                </Space>
+              </Option>
+            ))}
+          </Select>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+export default MicrocredentialList;

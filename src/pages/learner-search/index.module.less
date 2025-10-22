@@ -1,0 +1,131 @@
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.operations {
+  display: flex;
+}
+
+.content-type {
+  display: flex;
+
+  > svg {
+    margin-right: 8px;
+    margin-top: 3px;
+  }
+}
+
+.search-form-wrapper {
+  display: flex;
+  border-bottom: 1px solid var(--color-border-1);
+  margin-bottom: 20px;
+
+  .right-button {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding-left: 20px;
+    margin-bottom: 20px;
+    border-left: 1px solid var(--color-border-2);
+    box-sizing: border-box;
+  }
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.search-form {
+  :global(.arco-form-item-label-col) {
+    > label {
+      white-space: nowrap;
+      font-weight: 500;
+      color: #1d2129;
+      margin-bottom: 8px;
+    }
+  }
+
+  :global(.arco-input),
+  :global(.arco-select-view) {
+    height: 40px;
+  }
+
+  :global(.arco-btn-size-large) {
+    height: 40px;
+    padding: 0 20px;
+    font-weight: 500;
+  }
+
+  :global(.arco-btn-primary) {
+    background-color: rgb(var(--primary-6));
+
+    &:hover {
+      background-color: rgb(var(--primary-5));
+    }
+  }
+
+  :global(.arco-input:focus),
+  :global(.arco-select-view-focused) {
+    border-color: rgb(var(--primary-6));
+  }
+}
+.list-demo-actions-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transition: all 0.1s;
+}
+
+.list-demo-actions-icon:hover {
+  background-color: var(--color-fill-3);
+}
+
+.list-demo-actions-button[tabindex]:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary-light-3);
+}
+
+.list-demo-actions-button {
+  position: relative;
+  padding: 0 4px;
+  border-radius: 2px;
+  color: rgb(var(--arcoblue-6));
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.list-demo-actions-button:hover {
+  background-color: var(--color-fill-3);
+}
+
+.list-demo-actions .arco-list-item-action li:not(:last-child) .list-demo-actions-button::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: -10px;
+  width: 1px;
+  height: 12px;
+  background-color: var(--color-fill-3);
+}
+
+/* Editable table rows */
+:global {
+  .arco-table-body .arco-table-tr {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .arco-table-body .arco-table-tr:hover {
+    background-color: var(--color-fill-2) !important;
+  }
+
+  .arco-table-body .arco-table-tr:hover .arco-table-td {
+    background-color: transparent !important;
+  }
+}
