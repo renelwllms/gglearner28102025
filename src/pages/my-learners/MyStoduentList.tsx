@@ -20,6 +20,7 @@ import {
 import * as services from '@/services';
 import { teacher } from '@/services/teacher';
 import { useDispatch, useSelector } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import SearchForm from './form';
 import Courses from './Courses';
 import { IconDown, IconRight, IconEdit } from '@arco-design/web-react/icon';
@@ -32,6 +33,7 @@ import { retryRequest, showError, showRetryNotification } from '@/utils/errorHan
 
 function MyStoduentList({LearnerStatus = null, AssignedTo = null, FollowUp = null, allowStatusFilter = false, allowLastCommFilter = false, allowStudentTypeFilter = false}) {
   const dispatch = useDispatch();
+  const history = useHistory();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState([]);
   const token = useSelector((state: any) => state.token);
@@ -788,7 +790,7 @@ function handleSearch(params) {
                     <Button
                       type="primary"
                       onClick={() => {
-                        window.open('https://forms.office.com/r/JskAWkiQAK');
+                        history.push('/remote-register');
                       }}
                     >
                       Register New Learner

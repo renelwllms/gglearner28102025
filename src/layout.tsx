@@ -280,7 +280,8 @@ function PageLayout() {
           )}
           <Layout className={styles['layout-content']} style={paddingStyle}>
             <div className={styles['layout-content-wrapper']}>
-              {!!breadcrumb.length && (
+              {/* Breadcrumb hidden to save space */}
+              {/* {!!breadcrumb.length && (
                 <div className={styles['layout-breadcrumb']}>
                   <Breadcrumb>
                     {breadcrumb.map((node, index) => (
@@ -290,7 +291,7 @@ function PageLayout() {
                     ))}
                   </Breadcrumb>
                 </div>
-              )}
+              )} */}
               <Content>
                 <Switch>
                   {flattenRoutes.map((route, index) => {
@@ -312,7 +313,7 @@ function PageLayout() {
                 </Switch>
               </Content>
             </div>
-            {/* {showFooter && <Footer />} */}
+            <Footer />
           </Layout>
         </Layout>
       )}

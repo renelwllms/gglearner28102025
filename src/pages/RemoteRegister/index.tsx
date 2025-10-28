@@ -53,13 +53,41 @@ const RemoteRegister = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [formData, setFormData] = useState<any>({});
   const [pendingStepAdvance, setPendingStepAdvance] = useState(false);
+  const [schoolOptions, setSchoolOptions] = useState<any[]>([]);
+  const [existingStudentID, setExistingStudentID] = useState<number | null>(null);
 
   // Define fields for each step
   const stepFields = {
-    0: ['FirstName', 'LastName', 'DateOfBirth', 'Gender', 'Ethnicity', 'PhoneNumber', 'Email'],
-    1: ['School', 'TeacherName', 'TeacherEmail', 'InvoiceEmail', 'StreetAddress', 'City', 'Region', 'Zipcode', 'WorkbookOption', 'NZQAPreference'],
+    0: ['FirstName', 'LastName', 'DateOfBirth', 'Gender', 'Ethnicity', 'PhoneNumber', 'Email', 'School'],
+    1: ['TeacherName', 'TeacherEmail', 'InvoiceEmail', 'StreetAddress', 'City', 'Region', 'Zipcode', 'WorkbookOption', 'NZQAPreference'],
     2: ['CourseCategory', 'SelectedCourses', 'CustomCourse', 'AdditionalInfo'],
     3: ['Agreement']
+  };
+
+  // Load school options on mount
+  useEffect(() => {
+    loadSchools();
+  }, []);
+
+  const loadSchools = async () => {
+    try {
+      const res = await axios.get('/api/report/school');
+      console.log('Schools API response:', res.data);
+      if (res.data.code === 0) {
+        // Sort schools alphabetically
+        const sortedSchools = (res.data.data || []).sort((a, b) => {
+          const nameA = a.SchoolName?.toLowerCase() || '';
+          const nameB = b.SchoolName?.toLowerCase() || '';
+          return nameA.localeCompare(nameB);
+        });
+        console.log('Sorted schools:', sortedSchools.length);
+        setSchoolOptions(sortedSchools);
+      } else {
+        console.error('School API error:', res.data);
+      }
+    } catch (error) {
+      console.error('Error loading schools:', error);
+    }
   };
 
   // Load courses and unit standards when category changes
@@ -131,7 +159,8 @@ const RemoteRegister = () => {
         FirstName: values.FirstName,
         LastName: values.LastName,
         DateOfBirth: dobFormatted,
-        Email: values.Email
+        Email: values.Email,
+        School: values.School
       });
 
       if (res.data.code === 0 && res.data.data.exists) {
@@ -240,6 +269,13 @@ const RemoteRegister = () => {
       delete finalData.CustomCourse; // Remove CustomCourse as it's now merged
 
       setLoading(true);
+
+      // Add existing student ID if "This Is Me" was selected
+      if (existingStudentID) {
+        finalData.ExistingStudentID = existingStudentID;
+        console.log('Enrolling existing student ID:', existingStudentID);
+      }
+
       const res = await axios.post('/api/student/remoteRegister', finalData);
 
       if (res.data.code === 0) {
@@ -323,6 +359,25 @@ const RemoteRegister = () => {
       <FormItem label="Email" field="Email" rules={[{ required: true, type: 'email' }]}>
         <Input placeholder="Enter your email address" size="large" />
       </FormItem>
+
+      <FormItem label="School Name" field="School" rules={[{ required: true }]}>
+        <Select
+          placeholder="Select your school"
+          size="large"
+          showSearch
+          allowClear
+          allowCreate
+          filterOption={(inputValue, option) => {
+            return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+          }}
+        >
+          {schoolOptions.map((school) => (
+            <Select.Option key={school.SchoolNumber} value={school.SchoolName}>
+              {school.SchoolName}
+            </Select.Option>
+          ))}
+        </Select>
+      </FormItem>
     </div>
   );
 
@@ -330,12 +385,8 @@ const RemoteRegister = () => {
     <div className={styles.stepContent}>
       <h2 className={styles.stepTitle}>School & Contact Information</h2>
       <p className={styles.stepDescription}>
-        Tell us about your school or learning environment
+        Tell us about your teacher and contact details
       </p>
-
-      <FormItem label="School Name" field="School">
-        <Input placeholder="Enter your school name (if applicable)" size="large" />
-      </FormItem>
 
       <FormItem label="Teacher Name" field="TeacherName">
         <Input placeholder="Your teacher or contact person" size="large" />
@@ -650,12 +701,39 @@ const RemoteRegister = () => {
             disabled={selectedExistingStudent === null}
             onClick={() => {
               if (selectedExistingStudent !== null) {
-                Message.info('Please contact us to update your existing registration. Registration form closed.');
+                const student = duplicateCheck.students[selectedExistingStudent];
+                console.log('Selected existing student:', student);
+
+                // Store the existing student ID to use for enrollment
+                setExistingStudentID(student.StudentID);
+
+                // Populate the form with the existing student's data
+                const existingData = {
+                  FirstName: student.FirstName,
+                  LastName: student.LastName,
+                  Email: student.Email,
+                  DateOfBirth: student.DateOfBirth,
+                  Gender: student.Gender,
+                  Ethnicity: student.Ethnicity,
+                  PhoneNumber: student.PhoneNumber || '',
+                  School: student.School || student.SchoolName || '',
+                };
+
+                // Update form fields
+                form.setFieldsValue(existingData);
+
+                // Update formData state
+                setFormData(existingData);
+
+                // Close modal
                 setShowDuplicateModal(false);
                 setSelectedExistingStudent(null);
-                // Optionally redirect or reset form
-                setCurrent(0);
-                form.resetFields();
+
+                // Show success notification
+                Message.success(`Using existing record for ${student.FirstName} ${student.LastName}. Adding new course enrollment.`);
+
+                // Move to next step (School & Contact)
+                setCurrent(1);
               }
             }}
           >
@@ -724,11 +802,8 @@ const RemoteRegister = () => {
                   <p style={{ margin: '4px 0' }}>
                     <strong>{student.FirstName} {student.LastName}</strong>
                   </p>
-                  <p style={{ margin: '4px 0', color: '#666' }}>Email: {student.Email}</p>
-                  <p style={{ margin: '4px 0', color: '#666' }}>
-                    DOB: {student.DateOfBirth ? new Date(student.DateOfBirth).toLocaleDateString('en-NZ', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'}
-                  </p>
                   <p style={{ margin: '4px 0', color: '#666' }}>School: {student.School || 'N/A'}</p>
+                  <p style={{ margin: '4px 0', color: '#666' }}>Status: {student.Status || 'N/A'}</p>
                 </div>
               </Radio>
             </Card>

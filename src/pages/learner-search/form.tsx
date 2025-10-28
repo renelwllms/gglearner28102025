@@ -14,7 +14,6 @@ import { GlobalContext } from '@/context';
 import useLocale from '@/utils/useLocale';
 import { IconPlus, IconRefresh, IconSearch } from '@arco-design/web-react/icon';
 import styles from './index.module.less';
-import AddForm from '../Learner/form';
 import * as services from '@/services';
 import { teacher } from '@/services/teacher';
 import debounce from 'lodash/debounce';
@@ -26,8 +25,6 @@ function SearchForm(props: {
   onSearch: (values: Record<string, any>) => void;
 }) {
   const [form] = useForm();
-  const [addVisible, setAddVisible] = useState(false);
-  const [addLoading, setAddLoading] = useState(false);
   const [isDebouncing, setIsDebouncing] = useState(false);
   const [tutorOptions, setTutorOptions] = useState([]);
 
@@ -48,11 +45,19 @@ function SearchForm(props: {
 
   // Load tutor options on mount
   useEffect(() => {
-    teacher.getAll({}).then((res) => {
-      setTutorOptions(res?.data || []);
-    }).catch((err) => {
-      console.error('Failed to load tutors:', err);
-    });
+    // Add a small delay to allow authentication to complete
+    const timer = setTimeout(() => {
+      teacher.getAll({}).then((res) => {
+        setTutorOptions(res?.data || []);
+      }).catch((err) => {
+        // Silently fail during initial auth, user can retry search if needed
+        if (err?.response?.status !== 401) {
+          console.error('Failed to load tutors:', err);
+        }
+      });
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSubmit = () => {
@@ -83,10 +88,6 @@ function SearchForm(props: {
       Tutor: void 0,
     });
   };
-  const handleAdd = () => {
-    window.open('https://forms.office.com/r/JskAWkiQAK');
-    /*window.open('https://forms.office.com/r/Uy4i31KrM1');*/
-  };
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
@@ -96,40 +97,6 @@ function SearchForm(props: {
     }
   }
 
-  const handleAddCancel = () => {
-    setAddVisible(false);
-    form.resetFields();
-  }
-
-
-  const handleStudentSubmit = (values) => {
-    setAddLoading(true);
-    const { FirstName, LastName, SchoolName, Gender, DOB, Email, Ethnicity } =
-      values;
-
-    services.g
-      .addStudent({
-        FirstName,
-        LastName,
-        SchoolName: SchoolName?.label,
-        SchoolNumber: SchoolName?.value,
-        Gender,
-        DOB,
-        Email,
-        Ethnicity,
-      })
-      .then((res) => {
-        if (res?.data) {
-          setAddVisible(false);
-          Message.success('success');
-          form.resetFields();
-          handleSubmit();
-        }
-      })
-      .finally(() => {
-        setAddLoading(false);
-      });
-  };
 
   return (
     <div>
@@ -208,47 +175,18 @@ function SearchForm(props: {
               />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12} md={8} lg={7} xl={5} style={{ display: 'flex', alignItems: 'flex-end' }}>
-            <Space wrap style={{ marginBottom: 0 }}>
+          <Col xs={24} sm={12} md={8} lg={7} xl={5} style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+            <Space style={{ marginBottom: 0 }}>
               <Button type="primary" icon={<IconSearch />} onClick={handleSubmit}>
                 Search
               </Button>
               <Button icon={<IconRefresh />} onClick={handleReset}>
                 Reset
               </Button>
-              <Button
-                onClick={() => {
-                  setAddVisible(true);
-                }}
-              >
-                Add Student
-              </Button>
-              <Button icon={<IconPlus />} onClick={handleAdd}>
-                Register
-              </Button>
             </Space>
           </Col>
         </Row>
       </Form>
-
-      <Modal
-        title="Add"
-        visible={addVisible}
-        footer={null}
-        onCancel={handleAddCancel}
-        autoFocus={false}
-        focusLock={true}
-        unmountOnExit={true}
-        style={{ width: '800px' }}
-      >
-        <AddForm
-          form={form}
-          handleSubmit={handleStudentSubmit}
-          loading={addLoading}
-          handleCancel={handleAddCancel}
-        ></AddForm>
-      </Modal>
-
     </div>
   );
 }

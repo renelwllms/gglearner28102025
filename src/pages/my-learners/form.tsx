@@ -77,8 +77,30 @@ function SearchForm({ onSearch, allowStatusFilter = false, allowLastCommFilter =
   };
 
   const handleAddCancel = () => {
-    setAddVisible(false);
-    form.resetFields();
+    // Check if form has any values
+    const formValues = form.getFieldsValue();
+    const hasValues = Object.values(formValues).some(value => {
+      if (value === undefined || value === null || value === '') return false;
+      if (typeof value === 'object' && Object.keys(value).length === 0) return false;
+      return true;
+    });
+
+    if (hasValues) {
+      Modal.confirm({
+        title: 'Discard Changes?',
+        content: 'You have unsaved changes. Are you sure you want to close this form? All entered data will be lost.',
+        okText: 'Discard',
+        cancelText: 'Keep Editing',
+        okButtonProps: { status: 'danger' },
+        onOk: () => {
+          setAddVisible(false);
+          form.resetFields();
+        },
+      });
+    } else {
+      setAddVisible(false);
+      form.resetFields();
+    }
   }
 
 
@@ -98,7 +120,7 @@ function SearchForm({ onSearch, allowStatusFilter = false, allowLastCommFilter =
 
   const handleStudentSubmit = (values) => {
     setAddLoading(true);
-    const { FirstName, LastName, SchoolName, Gender, DOB, Email, Ethnicity } =
+    const { FirstName, LastName, SchoolName, Gender, DOB, Email, Ethnicity, Code } =
       values;
 
     services.g
@@ -111,11 +133,12 @@ function SearchForm({ onSearch, allowStatusFilter = false, allowLastCommFilter =
         DOB,
         Email,
         Ethnicity,
+        Code: Code || '', // Include workshop code if selected
       })
       .then((res) => {
         if (res?.data) {
           setAddVisible(false);
-          Message.success('success');
+          Message.success('Student added successfully!');
           form.resetFields();
           handleSubmit();
         }
@@ -150,8 +173,8 @@ function SearchForm({ onSearch, allowStatusFilter = false, allowLastCommFilter =
           marginBottom: '16px',
         }}
       >
-        <Row gutter={[12, 12]}>
-          <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+        <Row gutter={[12, 0]}>
+          <Col span={4}>
             <Form.Item label="Learner Name" field="name" style={{ marginBottom: 0 }}>
               <Input
                 allowClear
@@ -161,7 +184,7 @@ function SearchForm({ onSearch, allowStatusFilter = false, allowLastCommFilter =
               />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+          <Col span={4}>
             <Form.Item label="School Name" field="School" style={{ marginBottom: 0 }}>
               <Input
                 allowClear
@@ -171,7 +194,7 @@ function SearchForm({ onSearch, allowStatusFilter = false, allowLastCommFilter =
               />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+          <Col span={4}>
             <Form.Item label="Course" field="CourseID" style={{ marginBottom: 0 }}>
               <Select
                 allowCreate
@@ -190,7 +213,7 @@ function SearchForm({ onSearch, allowStatusFilter = false, allowLastCommFilter =
               />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+          <Col span={4}>
             <Form.Item label="Unit Standards" field="UnitStandardID" style={{ marginBottom: 0 }}>
               <Select
                 placeholder="Select unit"
@@ -213,7 +236,7 @@ function SearchForm({ onSearch, allowStatusFilter = false, allowLastCommFilter =
             </Form.Item>
           </Col>
           {allowStatusFilter && (
-            <Col xs={24} sm={12} md={8} lg={6} xl={4}>
+            <Col span={4}>
               <Form.Item label="Learner Status" field="AllStatus" style={{ marginBottom: 0 }}>
                 <Select
                   mode="multiple"
@@ -232,14 +255,14 @@ function SearchForm({ onSearch, allowStatusFilter = false, allowLastCommFilter =
             </Col>
           )}
           {allowLastCommFilter && (
-            <Col xs={24} sm={12} md={8} lg={5} xl={3}>
+            <Col span={3}>
               <Form.Item label="Last Comm Date" field="lastCommDate" style={{ marginBottom: 0 }}>
                 <DatePicker format={(value) => `${value.format('DD/MM/YYYY')}`} style={{ width: '100%' }} />
               </Form.Item>
             </Col>
           )}
           {allowLastCommFilter && (
-            <Col xs={24} sm={12} md={8} lg={5} xl={3}>
+            <Col span={3}>
               <Form.Item label="Enrollment Type" field="learnerType" style={{ marginBottom: 0 }}>
                 <Select defaultValue="all">
                   <Option value=""></Option>
@@ -249,38 +272,30 @@ function SearchForm({ onSearch, allowStatusFilter = false, allowLastCommFilter =
               </Form.Item>
             </Col>
           )}
-          <Col xs={24} sm={24} md={16} lg={10} xl={6} style={{ display: 'flex', alignItems: 'flex-end' }}>
-            <Space wrap style={{ marginBottom: 0 }}>
+          <Col flex="auto" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingTop: '24px' }}>
+            <Space style={{ marginBottom: 0 }}>
               <Button type="primary" icon={<IconSearch />} onClick={handleSubmit}>
                 Search
               </Button>
               <Button icon={<IconRefresh />} onClick={handleReset}>
                 Reset
               </Button>
-              <Button
-                type="primary"
-                onClick={() => {
-                  setAddVisible(true);
-                }}
-              >
-                Add Student
-              </Button>
-              <Button type="primary" icon={<IconPlus />} onClick={handleAdd}>
-                Register
-              </Button>
             </Space>
           </Col>
         </Row>
       </Form>
       <Modal
-        title="Add"
+        title="Add Student"
         visible={addVisible}
         footer={null}
         onCancel={handleAddCancel}
+        maskClosable={false}
+        escToExit={false}
         autoFocus={false}
         focusLock={true}
         unmountOnExit={true}
         style={{ width: '800px' }}
+        closable={true}
       >
         <AddForm
           form={form}

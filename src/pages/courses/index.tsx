@@ -20,7 +20,7 @@ function Courses() {
   return (
     <div>
       <Card bordered={false}>
-        <Tabs defaultActiveTab={isAdmin ? "1" : "6"}>
+        <Tabs defaultActiveTab="1">
           <TabPane key="1" title="Courses">
             <Card>
               <CourseList />

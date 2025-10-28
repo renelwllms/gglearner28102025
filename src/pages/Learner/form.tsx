@@ -25,16 +25,24 @@ function SearchForm({ handleSubmit, loading, form, isEdit = false, handleCancel 
     form.resetFields();
   };
   useEffect(() => {
+    console.log('Form mounted - loading schools and workshops');
     getOptions();
-
+    getWorkshops();
   }, []);
 
   const [schoolOption, setSchoolOption] = useState([]);
+  const [workshopOptions, setWorkshopOptions] = useState([]);
 
   const getOptions = async () => {
     try {
       const res = await services.g.getSchool({});
-      setSchoolOption(res?.data || []);
+      // Sort schools alphabetically by SchoolName
+      const sortedSchools = (res?.data || []).sort((a, b) => {
+        const nameA = a.SchoolName?.toLowerCase() || '';
+        const nameB = b.SchoolName?.toLowerCase() || '';
+        return nameA.localeCompare(nameB);
+      });
+      setSchoolOption(sortedSchools);
     } catch (error) {
       console.error('Failed to load schools:', error);
       Notification.error({
@@ -42,6 +50,47 @@ function SearchForm({ handleSubmit, loading, form, isEdit = false, handleCancel 
         content: 'Failed to load school list. Please refresh the page.',
         duration: 5000,
       });
+    }
+  };
+
+  const getWorkshops = async () => {
+    try {
+      const res = await services.g.getWorkshop({});
+      setWorkshopOptions(res?.data || []);
+    } catch (error) {
+      console.error('Failed to load workshops:', error);
+    }
+  };
+
+  const handleWorkshopChange = async (code: string) => {
+    console.log('Workshop changed, code:', code);
+    if (!code) {
+      console.log('No code provided, skipping auto-population');
+      return;
+    }
+    try {
+      console.log('Fetching workshop info for code:', code);
+      const res = await services.g.getWorkshopInforByCode({ Code: code });
+      console.log('Workshop API response:', res);
+      const workshopData = res?.data?.[0];
+      console.log('Workshop data:', workshopData);
+      if (workshopData && workshopData.SchoolNumber && workshopData.SchoolName) {
+        console.log('Setting school field to:', { label: workshopData.SchoolName, value: workshopData.SchoolNumber });
+        // Auto-populate school name from workshop
+        form.setFieldValue('SchoolName', {
+          label: workshopData.SchoolName,
+          value: workshopData.SchoolNumber,
+        });
+        Notification.success({
+          title: 'School Auto-Populated',
+          content: `School set to: ${workshopData.SchoolName}`,
+          duration: 3000,
+        });
+      } else {
+        console.log('Workshop data missing school info');
+      }
+    } catch (error) {
+      console.error('Failed to fetch workshop info:', error);
     }
   };
 
@@ -147,10 +196,39 @@ function SearchForm({ handleSubmit, loading, form, isEdit = false, handleCancel 
           placeholder="Enter your email address"
         />
       </Form.Item>
+
+      <Form.Item
+        label={'Workshop Code (Optional)'}
+        field="Code"
+        tooltip="Select a workshop to auto-populate the school name"
+      >
+        <Select
+          showSearch
+          allowClear
+          onChange={handleWorkshopChange}
+          placeholder="Select workshop (optional)"
+          filterOption={(inputValue, option) => {
+            const code = option.props.value || '';
+            const courseName = option.props.children || '';
+            return (
+              code.toLowerCase().includes(inputValue.toLowerCase()) ||
+              courseName.toLowerCase().includes(inputValue.toLowerCase())
+            );
+          }}
+        >
+          {workshopOptions.map((workshop) => (
+            <Select.Option key={workshop.Code} value={workshop.Code}>
+              {workshop.Code} - {workshop.CourseName} ({workshop.SchoolName})
+            </Select.Option>
+          ))}
+        </Select>
+      </Form.Item>
+
       <Form.Item
         label={'School Name'}
         field="SchoolName"
         rules={[{ required: true, message: 'Please select your school' }]}
+        tooltip="Auto-populated from workshop, or select/enter manually"
       >
         <Select
           labelInValue

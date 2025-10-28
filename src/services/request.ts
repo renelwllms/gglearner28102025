@@ -32,12 +32,16 @@ const processResponse = (response) => {
 const processResponseError = (error) => {
   // Handle 401 - Unauthorized
   if (error?.response?.status === 401) {
-    Message.error({
-      content: 'Session expired. Please refresh the page to log in again.',
-      duration: 5000,
-    });
-    // Optionally redirect to login or clear token
-    // window.location.reload();
+    // Only show session expired message if we actually had a token before
+    // This prevents false positives during initial page load/authentication
+    const { token } = store.getState();
+    if (token) {
+      Message.error({
+        content: 'Session expired. Please refresh the page to log in again.',
+        duration: 5000,
+      });
+    }
+    // If no token, silently reject - this is expected during initial auth
     return Promise.reject(error);
   }
 

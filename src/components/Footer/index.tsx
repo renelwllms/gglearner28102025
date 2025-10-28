@@ -8,7 +8,21 @@ function Footer(props: FooterProps = {}) {
   const { className, ...restProps } = props;
   return (
     <Layout.Footer className={cs(styles.footer, className)} {...restProps}>
-      The Get Group Learners
+      <div className={styles.footerContent}>
+        <span>The Get Group Learners</span>
+        <span className={styles.separator}>|</span>
+        <span>
+          Developed & Hosted by{' '}
+          <a
+            href="https://edgepoint.co.nz"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.edgepointLink}
+          >
+            Edgepoint
+          </a>
+        </span>
+      </div>
     </Layout.Footer>
   );
 }

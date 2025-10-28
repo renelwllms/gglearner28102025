@@ -10,6 +10,7 @@ import {
   Message,
   Button,
   Tag,
+  Modal,
 } from '@arco-design/web-react';
 import {
   IconLanguage,
@@ -18,6 +19,7 @@ import {
   IconUser,
   IconSettings,
   IconPoweroff,
+  IconUserAdd,
 } from '@arco-design/web-react/icon';
 import { useSelector, useDispatch } from 'react-redux';
 import { GlobalContext } from '@/context';
@@ -32,6 +34,10 @@ import { callMsGraph } from '@/ms/graph';
 import { adminName, loginRequest } from '@/ms/authConfig';
 import Name from '@/assets/name.png';
 import { adminUser } from '@/services/adminUser';
+import FormWizard from '@/pages/Learner/formWizard';
+import useForm from '@arco-design/web-react/es/Form/useForm';
+import * as services from '@/services';
+import { useHistory } from 'react-router-dom';
 
 function Navbar({ show }: { show: boolean }) {
   const t = useLocale();
@@ -42,6 +48,11 @@ function Navbar({ show }: { show: boolean }) {
   const isAuthenticated = useIsAuthenticated();
   const [userRoles, setUserRoles] = useState({});
   const { setLang, lang, theme, setTheme } = useContext(GlobalContext);
+  const [addStudentVisible, setAddStudentVisible] = useState(false);
+  const [addStudentLoading, setAddStudentLoading] = useState(false);
+  const [studentForm] = useForm();
+  const history = useHistory();
+  const currentPath = history.location.pathname;
 
   function logout() {
     instance.logoutRedirect({
@@ -96,6 +107,55 @@ function Navbar({ show }: { show: boolean }) {
     adminUser.getByEmail({email:_email}).then((res) => {
       setUserRoles(res.data?.UserRole);
     });
+  };
+
+  const handleAddStudent = () => {
+    setAddStudentVisible(true);
+  };
+
+  const handleAddStudentCancel = () => {
+    setAddStudentVisible(false);
+    studentForm.resetFields();
+  };
+
+  const handleStudentSubmit = (values) => {
+    setAddStudentLoading(true);
+    const { FirstName, LastName, SchoolName, Gender, DOB, Email, Ethnicity, Code } = values;
+
+    services.g
+      .addStudent({
+        FirstName,
+        LastName,
+        SchoolName: SchoolName?.label,
+        SchoolNumber: SchoolName?.value,
+        Gender,
+        DOB,
+        Email,
+        Ethnicity,
+        Code: Code || '',
+      })
+      .then((res) => {
+        if (res?.data) {
+          setAddStudentVisible(false);
+          Message.success('Student added successfully');
+          studentForm.resetFields();
+          // Refresh the current page if it's learner-related
+          if (currentPath.includes('learner') || currentPath.includes('my-learners')) {
+            window.location.reload();
+          }
+        }
+      })
+      .catch((err) => {
+        Message.error(err?.response?.data?.message || 'Failed to add student');
+      })
+      .finally(() => {
+        setAddStudentLoading(false);
+      });
+  };
+
+  // Don't show Add Student button on Reports and Settings pages
+  const shouldShowAddStudentButton = () => {
+    return !currentPath.includes('/reports') && !currentPath.includes('/courses');
   };
 
   useEffect(() => {
@@ -168,33 +228,20 @@ function Navbar({ show }: { show: boolean }) {
         </div>
       </div>
       <ul className={styles.right}>
-        {/* <li>
-          <Input.Search
-            className={styles.round}
-            placeholder={t['navbar.search.placeholder']}
-          />
-        </li> */}
-        {/* <li>
-          <Select
-            triggerElement={<IconButton icon={<IconLanguage />} />}
-            options={[
-              { label: 'English', value: 'en-US' },
-              { label: '中文', value: 'zh-CN' },
-            ]}
-            value={lang}
-            triggerProps={{
-              autoAlignPopupWidth: false,
-              autoAlignPopupMinWidth: true,
-              position: 'br',
-            }}
-            trigger="hover"
-            onChange={(value) => {
-              setLang(value);
-              const nextLang = defaultLocale[value];
-              Message.info(`${nextLang['message.lang.tips']}${value}`);
-            }}
-          />
-        </li> */}
+        {/* Add Student Button - visible on most pages except Reports and Settings */}
+        {shouldShowAddStudentButton() && (
+          <li>
+            <Button
+              type="primary"
+              icon={<IconUserAdd />}
+              onClick={handleAddStudent}
+              style={{ marginRight: '12px' }}
+            >
+              Add Student
+            </Button>
+          </li>
+        )}
+
         <li>
           <Tooltip
             content={
@@ -220,6 +267,27 @@ function Navbar({ show }: { show: boolean }) {
           </li>
         )}
       </ul>
+
+      {/* Global Add Student Modal */}
+      <Modal
+        title="Add New Student"
+        visible={addStudentVisible}
+        footer={null}
+        onCancel={handleAddStudentCancel}
+        autoFocus={false}
+        focusLock={true}
+        unmountOnExit={true}
+        style={{ width: '800px', maxWidth: '95vw' }}
+      >
+        <div style={{ maxHeight: '75vh', overflowY: 'auto', overflowX: 'hidden', padding: '0 4px' }}>
+          <FormWizard
+            form={studentForm}
+            handleSubmit={handleStudentSubmit}
+            loading={addStudentLoading}
+            handleCancel={handleAddStudentCancel}
+          />
+        </div>
+      </Modal>
     </div>
   );
 }

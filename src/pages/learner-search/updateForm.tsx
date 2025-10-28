@@ -16,6 +16,7 @@ import styles from './index.module.less';
 import { Grid } from '@arco-design/web-react'
 import { teacher } from '@/services/teacher';
 import Courses from '../StudentCourses/Courses';
+import Workshops from '../StudentCourses/Workshops';
 import CommunicationList from './CommunicationList'
 
 import { IconEdit, IconDelete, IconDownload, IconPlus } from '@arco-design/web-react/icon';
@@ -561,6 +562,11 @@ function UpdateForm({ handleSubmit, loading, form, handleCancel = null, headerIn
               LearnerName={headerInfo.FirstName + " " + headerInfo.LastName}
               Email={headerInfo.Email}
               studentInfo={headerInfo}
+            />
+          </TabPane>
+          <TabPane key="5" title="Workshops">
+            <Workshops
+              student={headerInfo}
             />
           </TabPane>
         </Tabs>
