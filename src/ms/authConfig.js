@@ -18,7 +18,7 @@ export const msalConfig = {
     clientId: 'e8d3a4a4-2922-44fa-8487-dc994f065e56',
     authority:
       'https://login.microsoftonline.com/807cd602-32e3-4a35-a30e-2ac56ecf53d6',
-    redirectUri: 'http://localhost:3000',
+    redirectUri: 'https://testportal.thegetgroup.co.nz',
   },
   cache: {
     cacheLocation: 'localStorage',
