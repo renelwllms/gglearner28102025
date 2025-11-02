@@ -268,47 +268,49 @@
   }
 }
 
-// Override Arco Design default styles
-:global {
-  .arco-form-item-label-required-symbol {
-    color: @primary-purple !important;
-  }
+// Override Arco Design default styles - scoped to this page only
+.container {
+  :global {
+    .arco-form-item-label-required-symbol {
+      color: @primary-purple !important;
+    }
 
-  .arco-input-focus,
-  .arco-input-wrapper-focus,
-  .arco-picker-focused,
-  .arco-select-view-focus {
-    border-color: @primary-purple !important;
-    box-shadow: 0 0 0 2px rgba(84, 36, 120, 0.2) !important;
-  }
+    .arco-input-focus,
+    .arco-input-wrapper-focus,
+    .arco-picker-focused,
+    .arco-select-view-focus {
+      border-color: @primary-purple !important;
+      box-shadow: 0 0 0 2px rgba(84, 36, 120, 0.2) !important;
+    }
 
-  .arco-radio-checked .arco-radio-mask-wrapper {
-    border-color: @primary-purple !important;
+    .arco-radio-checked .arco-radio-mask-wrapper {
+      border-color: @primary-purple !important;
 
-    .arco-radio-mask {
+      .arco-radio-mask {
+        background-color: @primary-purple !important;
+      }
+    }
+
+    .arco-checkbox-checked .arco-checkbox-mask-wrapper {
       background-color: @primary-purple !important;
+      border-color: @primary-purple !important;
     }
-  }
 
-  .arco-checkbox-checked .arco-checkbox-mask-wrapper {
-    background-color: @primary-purple !important;
-    border-color: @primary-purple !important;
-  }
+    .arco-btn-primary {
+      background-color: @primary-purple !important;
+      border-color: @primary-purple !important;
 
-  .arco-btn-primary {
-    background-color: @primary-purple !important;
-    border-color: @primary-purple !important;
-
-    &:hover {
-      background-color: @primary-pink !important;
-      border-color: @primary-pink !important;
+      &:hover {
+        background-color: @primary-pink !important;
+        border-color: @primary-pink !important;
+      }
     }
-  }
 
-  .arco-tag {
-    background-color: @light-purple !important;
-    color: @primary-pink !important;
-    border-color: @primary-purple !important;
+    .arco-tag {
+      background-color: @light-purple !important;
+      color: @primary-pink !important;
+      border-color: @primary-purple !important;
+    }
   }
 }
 
