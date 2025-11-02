@@ -20,6 +20,7 @@ import {
   IconSettings,
   IconPoweroff,
   IconUserAdd,
+  IconPlus,
 } from '@arco-design/web-react/icon';
 import { useSelector, useDispatch } from 'react-redux';
 import { GlobalContext } from '@/context';
@@ -238,6 +239,20 @@ function Navbar({ show }: { show: boolean }) {
               style={{ marginRight: '12px' }}
             >
               Add Student
+            </Button>
+          </li>
+        )}
+
+        {/* Remote Learner Registration Button - visible only on My Remote Learners page */}
+        {currentPath.includes('/my-learners') && (
+          <li>
+            <Button
+              type="primary"
+              icon={<IconPlus />}
+              onClick={() => window.open('/remote-register', '_blank')}
+              style={{ marginRight: '12px' }}
+            >
+              Remote Learner Registration
             </Button>
           </li>
         )}
