@@ -9,16 +9,40 @@ import { LogLevel } from '@azure/msal-browser';
  * Configuration object to be passed to MSAL instance on creation.
  * For a full list of MSAL.js configuration parameters, visit:
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md
+ *
+ * ENVIRONMENT CONFIGURATION:
+ * - Development (npm run dev): Uses http://localhost:3000
+ * - Production (npm run build): Uses https://testportal.thegetgroup.co.nz
+ * - Override: Create .env.local and set VITE_APP_REDIRECT_URI
  */
 
 export const adminName = ['Admin'];
+
+/**
+ * Automatically detect environment and set redirect URI
+ * Priority: Environment variable > Auto-detect mode > Fallback
+ */
+const getRedirectUri = () => {
+  // Use environment variable if set, otherwise auto-detect
+  if (import.meta.env.VITE_APP_REDIRECT_URI) {
+    return import.meta.env.VITE_APP_REDIRECT_URI;
+  }
+
+  // Fallback: auto-detect based on environment
+  if (import.meta.env.DEV) {
+    return 'http://localhost:3000';
+  }
+
+  // Production fallback
+  return 'https://testportal.thegetgroup.co.nz';
+};
 
 export const msalConfig = {
   auth: {
     clientId: 'e8d3a4a4-2922-44fa-8487-dc994f065e56',
     authority:
       'https://login.microsoftonline.com/807cd602-32e3-4a35-a30e-2ac56ecf53d6',
-    redirectUri: 'https://testportal.thegetgroup.co.nz',
+    redirectUri: getRedirectUri(),
   },
   cache: {
     cacheLocation: 'localStorage',
