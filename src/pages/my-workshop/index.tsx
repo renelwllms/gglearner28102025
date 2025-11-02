@@ -149,7 +149,31 @@ function MyWorkshop() {
       dataIndex: 'WorkshopStatus',
       key: "WorkshopStatus",
       width: 150,
-      render: (status) => getWorkshopStatusBadge(status),
+      render: (status, item) => (
+        <Select
+          value={status || 'Unprocessed'}
+          size="small"
+          style={{ width: '130px' }}
+          onChange={(value) => handleWorkshopStatusChange(item.WorkshopID, value)}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Option value="Unprocessed">
+            <Badge status="warning" text="Unprocessed" />
+          </Option>
+          <Option value="In Progress">
+            <Badge status="processing" text="In Progress" />
+          </Option>
+          <Option value="Processed">
+            <Badge status="success" text="Processed" />
+          </Option>
+          <Option value="Completed">
+            <Badge status="success" text="Completed" />
+          </Option>
+          <Option value="Cancelled">
+            <Badge status="error" text="Cancelled" />
+          </Option>
+        </Select>
+      ),
     },
 
     {
@@ -285,6 +309,23 @@ function MyWorkshop() {
     } catch (error) {
       console.error('Failed to update payment status:', error);
       Message.error('Failed to update payment status. Please try again.');
+    }
+  };
+
+  const handleWorkshopStatusChange = async (WorkshopID, WorkshopStatus) => {
+    try {
+      const res = await services.g.WorkshopStatusChange({ WorkshopID, WorkshopStatus });
+      if (res?.code === 0) {
+        Message.success('Workshop status updated successfully');
+        // Refresh the list while maintaining current tab filter
+        const selectedTab = tabList.find((tab) => tab.key === activeKey);
+        getList(activeKey !== '1' ? { Status: selectedTab.title } : {});
+      } else {
+        Message.error(res?.message || 'Failed to update workshop status');
+      }
+    } catch (error) {
+      console.error('Failed to update workshop status:', error);
+      Message.error('Failed to update workshop status. Please try again.');
     }
   };
 
