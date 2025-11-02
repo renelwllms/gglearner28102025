@@ -65,9 +65,6 @@ function MyWorkshop() {
     const statusMap = {
       'Processed': { status: 'success', text: 'Processed' },
       'Unprocessed': { status: 'warning', text: 'Unprocessed' },
-      'Completed': { status: 'success', text: 'Completed' },
-      'Cancelled': { status: 'error', text: 'Cancelled' },
-      'In Progress': { status: 'processing', text: 'In Progress' },
     };
     const config = statusMap[status] || { status: 'default', text: status };
     return <Badge status={config.status as any} text={config.text} />;
@@ -160,17 +157,8 @@ function MyWorkshop() {
           <Option value="Unprocessed">
             <Badge status="warning" text="Unprocessed" />
           </Option>
-          <Option value="In Progress">
-            <Badge status="processing" text="In Progress" />
-          </Option>
           <Option value="Processed">
             <Badge status="success" text="Processed" />
-          </Option>
-          <Option value="Completed">
-            <Badge status="success" text="Completed" />
-          </Option>
-          <Option value="Cancelled">
-            <Badge status="error" text="Cancelled" />
           </Option>
         </Select>
       ),
