@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Card, Tabs } from '@arco-design/web-react';
+import { Card, Tabs, Button } from '@arco-design/web-react';
+import { IconPlus } from '@arco-design/web-react/icon';
 import SearchForm from './form';
 import MyStoduentList from './MyStoduentList';
 
@@ -12,8 +13,17 @@ function LearnerSearch() {
     setFormParams(params);
   };
 
+  const handleRegisterClick = () => {
+    window.open('/remote-register', '_blank');
+  };
+
   return (
     <div style={{ padding: 0, margin: 0 }}>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'flex-end' }}>
+        <Button type="primary" icon={<IconPlus />} onClick={handleRegisterClick}>
+          Remote Learner Registration
+        </Button>
+      </div>
       <Tabs defaultActiveTab="1" destroyOnHide type="card-gutter">
         <TabPane key="1" title="All">
           <Card>

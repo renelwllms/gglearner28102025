@@ -542,22 +542,12 @@ const RemoteRegister = () => {
       <div className={styles.stepContent}>
         <h2 className={styles.stepTitle}>Privacy & Agreement</h2>
 
-        <Alert
-          type="info"
-          content="The provisions of Privacy Act NZ apply to all details held on this agreement and information held by The GET Group."
-          style={{ marginBottom: 24 }}
-        />
-
         <Card className={styles.agreementCard}>
-          <h3>Terms & Conditions</h3>
+          <h3>Privacy and Declaration</h3>
           <div className={styles.agreementText}>
-            <p>By submitting this registration you are consenting to:</p>
-            <ul>
-              <li>The sharing of your information with other parties for the purpose of reporting and organizational compliance</li>
-              <li>Checking in every week with The GET Group Remote Manager and submitting your work as required</li>
-              <li>The GET Group Supported Remote Learning program requirements</li>
-            </ul>
-            <p><strong>Once you have submitted this form, you will receive an invoice within 48 hours.</strong></p>
+            <p>The provisions of Privacy Act NZ apply to all details held on this agreement and information held by The GET Group.</p>
+            <p>By submitting this registration you are consenting to the sharing of your information with other parties for the purpose of reporting and organisational compliance. Please refer to website for full Privacy Policy.</p>
+            <p><strong>Once you have submitted the form, you will receive an invoice within 48 hours.</strong></p>
           </div>
 
           <FormItem
@@ -616,7 +606,7 @@ const RemoteRegister = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Individual Remote Learner Registration</h1>
+        <h1 className={styles.title}>Remote Learner Registration</h1>
         <p className={styles.subtitle}>
           This form is for all you cool cats learning from home, at school, or on the job.
           Let's rock 'n roll!

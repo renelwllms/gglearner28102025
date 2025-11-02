@@ -1,13 +1,14 @@
-@primary-pink: #E91E63;
-@light-pink: #FCE4EC;
-@dark-pink: #C2185B;
+@primary-purple: #542478;
+@primary-pink: #CD288B;
+@black: #000000;
 @white: #FFFFFF;
 @light-gray: #F5F5F5;
-@border-color: #E0E0E0;
+@light-purple: #E8D9F0;
+@border-color: #542478;
 
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, @light-pink 0%, @white 50%, @light-pink 100%);
+  background: linear-gradient(135deg, @black 0%, @primary-purple 50%, @black 100%);
   padding: 40px 20px;
 }
 
@@ -18,14 +19,14 @@
   .title {
     font-size: 36px;
     font-weight: 700;
-    color: @primary-pink;
+    color: @white;
     margin-bottom: 12px;
-    text-shadow: 2px 2px 4px rgba(233, 30, 99, 0.1);
+    text-shadow: 2px 2px 8px rgba(205, 40, 139, 0.6);
   }
 
   .subtitle {
     font-size: 16px;
-    color: #666;
+    color: @white;
     max-width: 600px;
     margin: 0 auto;
   }
@@ -35,39 +36,39 @@
   max-width: 900px;
   margin: 0 auto;
   border-radius: 16px !important;
-  box-shadow: 0 8px 32px rgba(233, 30, 99, 0.15) !important;
+  box-shadow: 0 8px 32px rgba(84, 36, 120, 0.5) !important;
   border: none !important;
   overflow: hidden;
 }
 
 .steps {
   padding: 32px 0 48px;
-  background: linear-gradient(to right, @light-pink, @white);
+  background: linear-gradient(to right, @light-purple, @white);
   margin: -20px -24px 32px;
   padding-left: 24px;
   padding-right: 24px;
 
   :global {
     .arco-steps-item-finish .arco-steps-item-icon {
-      background-color: @primary-pink !important;
-      border-color: @primary-pink !important;
+      background-color: @primary-purple !important;
+      border-color: @primary-purple !important;
     }
 
     .arco-steps-item-active .arco-steps-item-icon {
-      border-color: @primary-pink !important;
-      color: @primary-pink !important;
+      border-color: @primary-purple !important;
+      color: @primary-purple !important;
     }
 
     .arco-steps-item-finish .arco-steps-item-title {
-      color: @primary-pink !important;
+      color: @primary-purple !important;
     }
 
     .arco-steps-item-tail {
-      background-color: @light-pink !important;
+      background-color: @light-purple !important;
     }
 
     .arco-steps-item-finish .arco-steps-item-tail {
-      background-color: @primary-pink !important;
+      background-color: @primary-purple !important;
     }
   }
 }
@@ -79,13 +80,13 @@
 .stepContent {
   min-height: 400px;
   padding-bottom: 32px;
-  padding-right: 24px;
+  padding-right: 48px;
 }
 
 .stepTitle {
   font-size: 28px;
   font-weight: 700;
-  color: @primary-pink;
+  color: @primary-purple;
   margin-bottom: 8px;
 }
 
@@ -94,13 +95,13 @@
   color: #666;
   margin-bottom: 32px;
   padding-bottom: 16px;
-  border-bottom: 2px solid @light-pink;
+  border-bottom: 2px solid @light-purple;
 }
 
 .sectionTitle {
   font-size: 20px;
   font-weight: 600;
-  color: @dark-pink;
+  color: @primary-pink;
   margin: 24px 0 16px;
 }
 
@@ -118,14 +119,14 @@
   cursor: pointer;
 
   &:hover {
-    border-color: @primary-pink;
-    box-shadow: 0 4px 16px rgba(233, 30, 99, 0.15);
+    border-color: @primary-purple;
+    box-shadow: 0 4px 16px rgba(84, 36, 120, 0.3);
     transform: translateY(-2px);
   }
 
   :global {
     .arco-radio-checked ~ .categoryContent h3 {
-      color: @primary-pink;
+      color: @primary-purple;
     }
   }
 }
@@ -155,25 +156,25 @@
   transition: all 0.2s ease;
 
   &:hover {
-    background: @light-pink;
+    background: @light-purple;
   }
 
   :global {
     .arco-checkbox-checked + span {
-      color: @primary-pink;
+      color: @primary-purple;
       font-weight: 500;
     }
   }
 }
 
 .agreementCard {
-  background: @light-pink;
+  background: @light-purple;
   border: none !important;
   border-radius: 12px !important;
   margin-bottom: 24px;
 
   h3 {
-    color: @dark-pink;
+    color: @primary-pink;
     font-size: 20px;
     margin-bottom: 16px;
   }
@@ -201,18 +202,18 @@
 }
 
 .summaryCard {
-  background: linear-gradient(135deg, @white 0%, @light-pink 100%);
+  background: linear-gradient(135deg, @white 0%, @light-purple 100%);
   padding: 24px;
   border-radius: 12px;
-  border: 2px solid @primary-pink;
+  border: 2px solid @primary-purple;
   margin-right: 24px;
 
   h3 {
-    color: @dark-pink;
+    color: @primary-pink;
     font-size: 20px;
     margin-bottom: 16px;
     padding-bottom: 12px;
-    border-bottom: 2px solid @primary-pink;
+    border-bottom: 2px solid @primary-purple;
   }
 }
 
@@ -233,7 +234,7 @@
   }
 
   strong {
-    color: @dark-pink;
+    color: @primary-pink;
     font-size: 16px;
   }
 }
@@ -244,7 +245,8 @@
   gap: 16px;
   margin-top: 40px;
   padding-top: 32px;
-  border-top: 2px solid @light-pink;
+  padding-right: 24px;
+  border-top: 2px solid @light-purple;
 
   button {
     min-width: 140px;
@@ -254,13 +256,13 @@
     border-radius: 24px !important;
 
     &[type="primary"] {
-      background: linear-gradient(135deg, @primary-pink, @dark-pink) !important;
+      background: linear-gradient(135deg, @primary-purple, @primary-pink) !important;
       border: none !important;
-      box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3) !important;
+      box-shadow: 0 4px 12px rgba(205, 40, 139, 0.4) !important;
 
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(233, 30, 99, 0.4) !important;
+        box-shadow: 0 6px 16px rgba(205, 40, 139, 0.5) !important;
       }
     }
   }
@@ -269,44 +271,44 @@
 // Override Arco Design default styles
 :global {
   .arco-form-item-label-required-symbol {
-    color: @primary-pink !important;
+    color: @primary-purple !important;
   }
 
   .arco-input-focus,
   .arco-input-wrapper-focus,
   .arco-picker-focused,
   .arco-select-view-focus {
-    border-color: @primary-pink !important;
-    box-shadow: 0 0 0 2px rgba(233, 30, 99, 0.1) !important;
+    border-color: @primary-purple !important;
+    box-shadow: 0 0 0 2px rgba(84, 36, 120, 0.2) !important;
   }
 
   .arco-radio-checked .arco-radio-mask-wrapper {
-    border-color: @primary-pink !important;
+    border-color: @primary-purple !important;
 
     .arco-radio-mask {
-      background-color: @primary-pink !important;
+      background-color: @primary-purple !important;
     }
   }
 
   .arco-checkbox-checked .arco-checkbox-mask-wrapper {
-    background-color: @primary-pink !important;
-    border-color: @primary-pink !important;
+    background-color: @primary-purple !important;
+    border-color: @primary-purple !important;
   }
 
   .arco-btn-primary {
-    background-color: @primary-pink !important;
-    border-color: @primary-pink !important;
+    background-color: @primary-purple !important;
+    border-color: @primary-purple !important;
 
     &:hover {
-      background-color: @dark-pink !important;
-      border-color: @dark-pink !important;
+      background-color: @primary-pink !important;
+      border-color: @primary-pink !important;
     }
   }
 
   .arco-tag {
-    background-color: @light-pink !important;
-    color: @dark-pink !important;
-    border-color: @primary-pink !important;
+    background-color: @light-purple !important;
+    color: @primary-pink !important;
+    border-color: @primary-purple !important;
   }
 }
 
