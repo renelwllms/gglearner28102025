@@ -138,6 +138,10 @@ export const g = {
     const res = await request(api.getSchool, params);
     return res;
   },
+  async getAllTutorList(params) {
+    const res = await request(api.getAllTutorList, params);
+    return res;
+  },
   async getReport1(params) {
     const res = await request(api.getReport1, params);
     return res;

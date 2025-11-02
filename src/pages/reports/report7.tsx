@@ -102,12 +102,15 @@ function Report7() {
   const loadTutors = async () => {
     try {
       const res = await services.g.getAllTutorList();
+      console.log('Tutor API response:', res);
       if (res.code === 0) {
+        console.log('Tutor data:', res.data);
         const sorted = (res.data || []).sort((a, b) => {
           const nameA = a.DeliverySpecialist?.toLowerCase() || '';
           const nameB = b.DeliverySpecialist?.toLowerCase() || '';
           return nameA.localeCompare(nameB);
         });
+        console.log('Sorted tutors:', sorted);
         setTutorOptions(sorted);
       }
     } catch (error) {
