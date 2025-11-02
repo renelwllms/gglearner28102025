@@ -184,7 +184,7 @@ function LearnerSearch({LearnerStatus = null, AssignedTo = null, FollowUp = null
         key: 'CreateDate',
         width: 150,
         ellipsis: true,
-        render: (date) => date ? moment(date).format('DD/MM/YYYY') : '-',
+        render: (date) => date ? moment.utc(date).format('DD/MM/YYYY') : '-',
       },
       {
         title: 'School',
@@ -440,7 +440,7 @@ function LearnerSearch({LearnerStatus = null, AssignedTo = null, FollowUp = null
     const enrollmentInfo = [
       {
         label: 'Registration Date:',
-        value: row['CreateDate'] ? moment(row['CreateDate']).format('DD/MM/YYYY HH:mm') : '-',
+        value: row['CreateDate'] ? moment.utc(row['CreateDate']).format('DD/MM/YYYY HH:mm') : '-',
       },
       {
         label: 'Tutor:',
