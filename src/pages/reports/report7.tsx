@@ -57,6 +57,80 @@ function Report7() {
   const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined);
   const [filterAssignedTo, setFilterAssignedTo] = useState<string | undefined>(undefined);
 
+  // Additional filter options
+  const [filterSchools, setFilterSchools] = useState<string[]>([]);
+  const [filterTutors, setFilterTutors] = useState<string[]>([]);
+  const [filterRegions, setFilterRegions] = useState<string[]>([]);
+  const [filterEthnicities, setFilterEthnicities] = useState<string[]>([]);
+
+  // Dropdown options
+  const [schoolOptions, setSchoolOptions] = useState([]);
+  const [tutorOptions, setTutorOptions] = useState([]);
+  const [regionOptions, setRegionOptions] = useState([]);
+  const [ethnicityOptions] = useState([
+    'NZ European', 'Maori', 'Cook Island Maori', 'Niuean', 'Samoan',
+    'Tongan', 'Fijian', 'Tokelauan', 'Chinese', 'Indian', 'Japanese',
+    'Korean', 'Vietnamese', 'Filipino', 'Malaysian', 'Indonesian', 'Thai',
+    'Middle Eastern/Latin American/African', 'Other'
+  ]);
+
+  // Load dropdown options on mount
+  useEffect(() => {
+    if (token) {
+      loadSchools();
+      loadTutors();
+      loadRegions();
+    }
+  }, [token]);
+
+  const loadSchools = async () => {
+    try {
+      const res = await services.g.getSchool();
+      if (res.code === 0) {
+        const sorted = (res.data || []).sort((a, b) => {
+          const nameA = a.SchoolName?.toLowerCase() || '';
+          const nameB = b.SchoolName?.toLowerCase() || '';
+          return nameA.localeCompare(nameB);
+        });
+        setSchoolOptions(sorted);
+      }
+    } catch (error) {
+      console.error('Error loading schools:', error);
+    }
+  };
+
+  const loadTutors = async () => {
+    try {
+      const res = await services.g.getAllTutorList();
+      if (res.code === 0) {
+        const sorted = (res.data || []).sort((a, b) => {
+          const nameA = a.TutorName?.toLowerCase() || '';
+          const nameB = b.TutorName?.toLowerCase() || '';
+          return nameA.localeCompare(nameB);
+        });
+        setTutorOptions(sorted);
+      }
+    } catch (error) {
+      console.error('Error loading tutors:', error);
+    }
+  };
+
+  const loadRegions = async () => {
+    try {
+      // Get unique regions from student data
+      const res = await services.student.getReport({ pageSize: 10000, isReport: 1 });
+      if (res.code === 0 && res.data && res.data[1]) {
+        const uniqueRegions = [...new Set(res.data[1]
+          .map(student => student.Region)
+          .filter(region => region && region.trim() !== ''))]
+          .sort();
+        setRegionOptions(uniqueRegions);
+      }
+    } catch (error) {
+      console.error('Error loading regions:', error);
+    }
+  };
+
   useEffect(() => {
     // Build columns based on selected fields
     const tableColumns = selectedFields.map((fieldKey) => {
@@ -90,23 +164,33 @@ function Report7() {
       return;
     }
 
-    console.log('Starting Report 7 API call with params:', {
+    const params: any = {
       fields: selectedFields.join(','),
       startYear: time?.length > 0 ? time[0] : undefined,
       endYear: time?.length > 0 ? time[1] : undefined,
       status: filterStatus,
       assignedTo: filterAssignedTo,
-    });
+    };
+
+    // Add multi-select filters if values are selected
+    if (filterSchools.length > 0) {
+      params.schools = filterSchools.join(',');
+    }
+    if (filterTutors.length > 0) {
+      params.tutors = filterTutors.join(',');
+    }
+    if (filterRegions.length > 0) {
+      params.regions = filterRegions.join(',');
+    }
+    if (filterEthnicities.length > 0) {
+      params.ethnicities = filterEthnicities.join(',');
+    }
+
+    console.log('Starting Report 7 API call with params:', params);
 
     setLoading(true);
     services.g
-      .getReport7({
-        fields: selectedFields.join(','),
-        startYear: time?.length > 0 ? time[0] : undefined,
-        endYear: time?.length > 0 ? time[1] : undefined,
-        status: filterStatus,
-        assignedTo: filterAssignedTo,
-      })
+      .getReport7(params)
       .then((res) => {
         console.log('Report 7 API response:', res);
         const records = res?.data || [];
@@ -249,6 +333,98 @@ function Report7() {
             >
               <Option value="School">School</Option>
               <Option value="GET Group">GET Group</Option>
+            </Select>
+          </div>
+
+          <div>
+            <Typography.Text style={{ marginRight: 8 }}>School:</Typography.Text>
+            <Select
+              mode="multiple"
+              placeholder="Select schools"
+              style={{ width: 300 }}
+              size="small"
+              allowClear
+              showSearch
+              value={filterSchools}
+              onChange={(value) => setFilterSchools(value)}
+              filterOption={(inputValue, option) => {
+                return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+              }}
+            >
+              {schoolOptions.map((school) => (
+                <Option key={school.SchoolNumber} value={school.SchoolName}>
+                  {school.SchoolName}
+                </Option>
+              ))}
+            </Select>
+          </div>
+
+          <div>
+            <Typography.Text style={{ marginRight: 8 }}>Tutor:</Typography.Text>
+            <Select
+              mode="multiple"
+              placeholder="Select tutors"
+              style={{ width: 300 }}
+              size="small"
+              allowClear
+              showSearch
+              value={filterTutors}
+              onChange={(value) => setFilterTutors(value)}
+              filterOption={(inputValue, option) => {
+                return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+              }}
+            >
+              {tutorOptions.map((tutor) => (
+                <Option key={tutor.TutorID} value={tutor.TutorName}>
+                  {tutor.TutorName}
+                </Option>
+              ))}
+            </Select>
+          </div>
+
+          <div>
+            <Typography.Text style={{ marginRight: 8 }}>Region:</Typography.Text>
+            <Select
+              mode="multiple"
+              placeholder="Select regions"
+              style={{ width: 300 }}
+              size="small"
+              allowClear
+              showSearch
+              value={filterRegions}
+              onChange={(value) => setFilterRegions(value)}
+              filterOption={(inputValue, option) => {
+                return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+              }}
+            >
+              {regionOptions.map((region) => (
+                <Option key={region} value={region}>
+                  {region}
+                </Option>
+              ))}
+            </Select>
+          </div>
+
+          <div>
+            <Typography.Text style={{ marginRight: 8 }}>Ethnicity:</Typography.Text>
+            <Select
+              mode="multiple"
+              placeholder="Select ethnicities"
+              style={{ width: 300 }}
+              size="small"
+              allowClear
+              showSearch
+              value={filterEthnicities}
+              onChange={(value) => setFilterEthnicities(value)}
+              filterOption={(inputValue, option) => {
+                return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+              }}
+            >
+              {ethnicityOptions.map((ethnicity) => (
+                <Option key={ethnicity} value={ethnicity}>
+                  {ethnicity}
+                </Option>
+              ))}
             </Select>
           </div>
         </Space>
