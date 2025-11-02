@@ -154,7 +154,7 @@ function MyWorkshop() {
           value={status || 'Unprocessed'}
           size="small"
           style={{ width: '130px' }}
-          onChange={(value) => handleWorkshopStatusChange(item.WorkshopID, value)}
+          onChange={(value) => handleWorkshopStatusChange(item.Code, value)}
           onClick={(e) => e.stopPropagation()}
         >
           <Option value="Unprocessed">
@@ -312,9 +312,9 @@ function MyWorkshop() {
     }
   };
 
-  const handleWorkshopStatusChange = async (WorkshopID, WorkshopStatus) => {
+  const handleWorkshopStatusChange = async (code, Status) => {
     try {
-      const res = await services.g.WorkshopStatusChange({ WorkshopID, WorkshopStatus });
+      const res = await services.g.WorkshopStatusChange({ code, Status });
       if (res?.code === 0) {
         Message.success('Workshop status updated successfully');
         // Refresh the list while maintaining current tab filter
