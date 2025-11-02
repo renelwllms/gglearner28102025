@@ -123,12 +123,12 @@ function MyWorkshop() {
       title: 'Payment Status',
       dataIndex: 'PaymentStatus',
       key: "PaymentStatus",
-      width: 170,
+      width: 140,
       render: (status, item) => (
         <Select
           value={status || 'Unpaid'}
           size="small"
-          style={{ width: '150px' }}
+          style={{ width: '120px' }}
           onChange={(value) => handlePaymentStatusChange(item.WorkshopID, value)}
           onClick={(e) => e.stopPropagation()}
         >
