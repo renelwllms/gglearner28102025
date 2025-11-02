@@ -104,8 +104,8 @@ function Report7() {
       const res = await services.g.getAllTutorList();
       if (res.code === 0) {
         const sorted = (res.data || []).sort((a, b) => {
-          const nameA = a.TutorName?.toLowerCase() || '';
-          const nameB = b.TutorName?.toLowerCase() || '';
+          const nameA = a.DeliverySpecialist?.toLowerCase() || '';
+          const nameB = b.DeliverySpecialist?.toLowerCase() || '';
           return nameA.localeCompare(nameB);
         });
         setTutorOptions(sorted);
@@ -396,10 +396,10 @@ function Report7() {
                 }}
               >
                 {tutorOptions
-                  .filter(tutor => !filterTutors.includes(tutor.TutorName))
+                  .filter(tutor => !filterTutors.includes(tutor.DeliverySpecialist))
                   .map((tutor) => (
-                    <Option key={tutor.TutorID} value={tutor.TutorName}>
-                      {tutor.TutorName}
+                    <Option key={tutor.Id} value={tutor.DeliverySpecialist}>
+                      {tutor.DeliverySpecialist}
                     </Option>
                   ))}
               </Select>
