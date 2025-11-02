@@ -28,14 +28,76 @@ export default function LearnerResults() {
     current: 1,
   });
 
+  // Options for dropdowns
+  const [schoolOptions, setSchoolOptions] = useState([]);
+  const [tutorOptions, setTutorOptions] = useState([]);
+  const [regionOptions, setRegionOptions] = useState([]);
+  const [ethnicityOptions, setEthnicityOptions] = useState([
+    'NZ European', 'Maori', 'Cook Island Maori', 'Niuean', 'Samoan',
+    'Tongan', 'Fijian', 'Tokelauan', 'Chinese', 'Indian', 'Japanese',
+    'Korean', 'Vietnamese', 'Filipino', 'Malaysian', 'Indonesian', 'Thai',
+    'Middle Eastern/Latin American/African', 'Other'
+  ]);
+
   useEffect(() => {
     if (token) {
       getList();
+      loadSchools();
+      loadTutors();
+      loadRegions();
     }
   }, [token]);
 
   const handleFilterChange = (values) => {
     setSelectedFilters(values);
+  };
+
+  const loadSchools = async () => {
+    try {
+      const res = await services.g.getSchool();
+      if (res.code === 0) {
+        const sorted = (res.data || []).sort((a, b) => {
+          const nameA = a.SchoolName?.toLowerCase() || '';
+          const nameB = b.SchoolName?.toLowerCase() || '';
+          return nameA.localeCompare(nameB);
+        });
+        setSchoolOptions(sorted);
+      }
+    } catch (error) {
+      console.error('Error loading schools:', error);
+    }
+  };
+
+  const loadTutors = async () => {
+    try {
+      const res = await services.g.getAllTutorList();
+      if (res.code === 0) {
+        const sorted = (res.data || []).sort((a, b) => {
+          const nameA = a.TutorName?.toLowerCase() || '';
+          const nameB = b.TutorName?.toLowerCase() || '';
+          return nameA.localeCompare(nameB);
+        });
+        setTutorOptions(sorted);
+      }
+    } catch (error) {
+      console.error('Error loading tutors:', error);
+    }
+  };
+
+  const loadRegions = async () => {
+    try {
+      // Get unique regions from student data
+      const res = await services.student.getReport({ pageSize: 10000, isReport: 1 });
+      if (res.code === 0 && res.data && res.data[1]) {
+        const uniqueRegions = [...new Set(res.data[1]
+          .map(student => student.Region)
+          .filter(region => region && region.trim() !== ''))]
+          .sort();
+        setRegionOptions(uniqueRegions);
+      }
+    } catch (error) {
+      console.error('Error loading regions:', error);
+    }
   };
 
   const columns = [
@@ -205,25 +267,37 @@ export default function LearnerResults() {
   function generateSQLWhere(obj) {
     // Filter out undefined values and build conditions
     const conditions = Object.entries(obj)
-      .filter(([key, value]) => value !== undefined)
+      .filter(([key, value]) => value !== undefined && value !== null && value !== '')
       .map(([key, value]) => {
         // Replace underscores with dots for column names
         const columnName = key.replace(/_/g, '.');
 
         // Handle different value types
         if (Array.isArray(value)) {
-          // Handle date range arrays
-          if (value.length === 2) {
-            return `${columnName} >= '${value[0]}' AND ${columnName} <= '${value[1]}'`;
-          } else if (value.length === 1) {
-            return `${columnName} = '${value[0]}'`;
+          // Filter out empty values
+          const filteredValue = value.filter(v => v !== undefined && v !== null && v !== '');
+          if (filteredValue.length === 0) return null;
+
+          // Check if this is a date range (both values are dates)
+          const isDateRange = filteredValue.length === 2 &&
+                              typeof filteredValue[0] === 'string' &&
+                              typeof filteredValue[1] === 'string' &&
+                              filteredValue[0].includes('-');
+
+          if (isDateRange) {
+            // Handle date range arrays
+            return `${columnName} >= '${filteredValue[0]}' AND ${columnName} <= '${filteredValue[1]}'`;
+          } else if (filteredValue.length === 1) {
+            // Single value
+            return `${columnName} = '${filteredValue[0]}'`;
           } else {
-            // For arrays with more than 2 elements, use IN clause
-            const values = value.map(v => `'${v}'`).join(', ');
+            // Multiple values, use IN clause
+            const values = filteredValue.map(v => `'${String(v).replace(/'/g, "''")}'`).join(', ');
             return `${columnName} IN (${values})`;
           }
         } else if (typeof value === 'string') {
-          return `${columnName} = '${value}'`;
+          // Escape single quotes in string values
+          return `${columnName} = '${value.replace(/'/g, "''")}'`;
         } else if (typeof value === 'number') {
           return `${columnName} = ${value}`;
         } else if (value === null) {
@@ -232,9 +306,10 @@ export default function LearnerResults() {
           return `${columnName} = ${value ? 1 : 0}`;
         } else {
           // For other types, convert to string
-          return `${columnName} = '${value}'`;
+          return `${columnName} = '${String(value).replace(/'/g, "''")}'`;
         }
-      });
+      })
+      .filter(condition => condition !== null); // Remove null conditions
 
     return conditions.length > 0 ? conditions.join(' AND ') : '';
   }
@@ -394,16 +469,50 @@ export default function LearnerResults() {
                 <DatePicker.RangePicker />
               </Form.Item>
             )}
+            {selectedFilters.includes('school') && (
+              <Form.Item
+                label="School"
+                field="S_School"
+              >
+                <Select
+                  mode="multiple"
+                  placeholder="Select schools"
+                  style={{ width: 300 }}
+                  showSearch
+                  allowClear
+                  filterOption={(inputValue, option) => {
+                    return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+                  }}
+                >
+                  {schoolOptions.map((school) => (
+                    <Option key={school.SchoolNumber} value={school.SchoolName}>
+                      {school.SchoolName}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            )}
             {selectedFilters.includes('ethnicity') && (
               <Form.Item
                 label="Ethnicity"
                 field="S_Ethnicity"
               >
-                <Input
+                <Select
+                  mode="multiple"
+                  placeholder="Select ethnicity"
+                  style={{ width: 300 }}
+                  showSearch
                   allowClear
-                  style={{ width: '100%' }}
-                  placeholder="please enter"
-                />
+                  filterOption={(inputValue, option) => {
+                    return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+                  }}
+                >
+                  {ethnicityOptions.map((ethnicity) => (
+                    <Option key={ethnicity} value={ethnicity}>
+                      {ethnicity}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             )}
             {selectedFilters.includes('region') && (
@@ -411,11 +520,22 @@ export default function LearnerResults() {
                 label="Region"
                 field="S_Region"
               >
-                <Input
+                <Select
+                  mode="multiple"
+                  placeholder="Select regions"
+                  style={{ width: 300 }}
+                  showSearch
                   allowClear
-                  style={{ width: '100%' }}
-                  placeholder="please enter"
-                />
+                  filterOption={(inputValue, option) => {
+                    return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+                  }}
+                >
+                  {regionOptions.map((region) => (
+                    <Option key={region} value={region}>
+                      {region}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             )}
             {selectedFilters.includes('tutor') && (
@@ -423,11 +543,22 @@ export default function LearnerResults() {
                 label="Tutor"
                 field="S_Tutor"
               >
-                <Input
+                <Select
+                  mode="multiple"
+                  placeholder="Select tutors"
+                  style={{ width: 300 }}
+                  showSearch
                   allowClear
-                  style={{ width: '100%' }}
-                  placeholder="please enter"
-                />
+                  filterOption={(inputValue, option) => {
+                    return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+                  }}
+                >
+                  {tutorOptions.map((tutor) => (
+                    <Option key={tutor.TutorID} value={tutor.TutorName}>
+                      {tutor.TutorName}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
             )}
             <Space>
