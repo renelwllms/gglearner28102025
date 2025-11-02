@@ -156,6 +156,20 @@ function Report7() {
     }).filter(Boolean);
 
     setColumns(tableColumns);
+
+    // Clear filter values when corresponding field is deselected
+    if (!selectedFields.includes('School')) {
+      setFilterSchools([]);
+    }
+    if (!selectedFields.includes('Tutor')) {
+      setFilterTutors([]);
+    }
+    if (!selectedFields.includes('Region')) {
+      setFilterRegions([]);
+    }
+    if (!selectedFields.includes('Ethnicity')) {
+      setFilterEthnicities([]);
+    }
   }, [selectedFields]);
 
   const getList = () => {
@@ -336,97 +350,117 @@ function Report7() {
             </Select>
           </div>
 
-          <div>
-            <Typography.Text style={{ marginRight: 8 }}>School:</Typography.Text>
-            <Select
-              mode="multiple"
-              placeholder="Select schools"
-              style={{ width: 300 }}
-              size="small"
-              allowClear
-              showSearch
-              value={filterSchools}
-              onChange={(value) => setFilterSchools(value)}
-              filterOption={(inputValue, option) => {
-                return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
-              }}
-            >
-              {schoolOptions.map((school) => (
-                <Option key={school.SchoolNumber} value={school.SchoolName}>
-                  {school.SchoolName}
-                </Option>
-              ))}
-            </Select>
-          </div>
+          {selectedFields.includes('School') && (
+            <div>
+              <Typography.Text style={{ marginRight: 8 }}>School:</Typography.Text>
+              <Select
+                mode="multiple"
+                placeholder="Select schools"
+                style={{ width: 300 }}
+                size="small"
+                allowClear
+                showSearch
+                maxTagCount={2}
+                value={filterSchools}
+                onChange={(value) => setFilterSchools(value)}
+                filterOption={(inputValue, option) => {
+                  return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+                }}
+              >
+                {schoolOptions
+                  .filter(school => !filterSchools.includes(school.SchoolName))
+                  .map((school) => (
+                    <Option key={school.SchoolNumber} value={school.SchoolName}>
+                      {school.SchoolName}
+                    </Option>
+                  ))}
+              </Select>
+            </div>
+          )}
 
-          <div>
-            <Typography.Text style={{ marginRight: 8 }}>Tutor:</Typography.Text>
-            <Select
-              mode="multiple"
-              placeholder="Select tutors"
-              style={{ width: 300 }}
-              size="small"
-              allowClear
-              showSearch
-              value={filterTutors}
-              onChange={(value) => setFilterTutors(value)}
-              filterOption={(inputValue, option) => {
-                return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
-              }}
-            >
-              {tutorOptions.map((tutor) => (
-                <Option key={tutor.TutorID} value={tutor.TutorName}>
-                  {tutor.TutorName}
-                </Option>
-              ))}
-            </Select>
-          </div>
+          {selectedFields.includes('Tutor') && (
+            <div>
+              <Typography.Text style={{ marginRight: 8 }}>Tutor:</Typography.Text>
+              <Select
+                mode="multiple"
+                placeholder="Select tutors"
+                style={{ width: 300 }}
+                size="small"
+                allowClear
+                showSearch
+                maxTagCount={2}
+                value={filterTutors}
+                onChange={(value) => setFilterTutors(value)}
+                filterOption={(inputValue, option) => {
+                  return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+                }}
+              >
+                {tutorOptions
+                  .filter(tutor => !filterTutors.includes(tutor.TutorName))
+                  .map((tutor) => (
+                    <Option key={tutor.TutorID} value={tutor.TutorName}>
+                      {tutor.TutorName}
+                    </Option>
+                  ))}
+              </Select>
+            </div>
+          )}
 
-          <div>
-            <Typography.Text style={{ marginRight: 8 }}>Region:</Typography.Text>
-            <Select
-              mode="multiple"
-              placeholder="Select regions"
-              style={{ width: 300 }}
-              size="small"
-              allowClear
-              showSearch
-              value={filterRegions}
-              onChange={(value) => setFilterRegions(value)}
-              filterOption={(inputValue, option) => {
-                return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
-              }}
-            >
-              {regionOptions.map((region) => (
-                <Option key={region} value={region}>
-                  {region}
-                </Option>
-              ))}
-            </Select>
-          </div>
+          {selectedFields.includes('Region') && (
+            <div>
+              <Typography.Text style={{ marginRight: 8 }}>Region:</Typography.Text>
+              <Select
+                mode="multiple"
+                placeholder="Select regions"
+                style={{ width: 300 }}
+                size="small"
+                allowClear
+                showSearch
+                maxTagCount={2}
+                value={filterRegions}
+                onChange={(value) => setFilterRegions(value)}
+                filterOption={(inputValue, option) => {
+                  return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+                }}
+              >
+                {regionOptions
+                  .filter(region => !filterRegions.includes(region))
+                  .map((region) => (
+                    <Option key={region} value={region}>
+                      {region}
+                    </Option>
+                  ))}
+              </Select>
+            </div>
+          )}
 
-          <div>
-            <Typography.Text style={{ marginRight: 8 }}>Ethnicity:</Typography.Text>
-            <Select
-              mode="multiple"
-              placeholder="Select ethnicities"
-              style={{ width: 300 }}
-              size="small"
-              allowClear
-              showSearch
-              value={filterEthnicities}
-              onChange={(value) => setFilterEthnicities(value)}
-              filterOption={(inputValue, option) => {
-                return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
-              }}
-            >
-              {ethnicityOptions.map((ethnicity) => (
-                <Option key={ethnicity} value={ethnicity}>
-                  {ethnicity}
-                </Option>
-              ))}
-            </Select>
-          </div>
+          {selectedFields.includes('Ethnicity') && (
+            <div>
+              <Typography.Text style={{ marginRight: 8 }}>Ethnicity:</Typography.Text>
+              <Select
+                mode="multiple"
+                placeholder="Select ethnicities"
+                style={{ width: 300 }}
+                size="small"
+                allowClear
+                showSearch
+                maxTagCount={2}
+                value={filterEthnicities}
+                onChange={(value) => setFilterEthnicities(value)}
+                filterOption={(inputValue, option) => {
+                  return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+                }}
+              >
+                {ethnicityOptions
+                  .filter(ethnicity => !filterEthnicities.includes(ethnicity))
+                  .map((ethnicity) => (
+                    <Option key={ethnicity} value={ethnicity}>
+                      {ethnicity}
+                    </Option>
+                  ))}
+              </Select>
+            </div>
+          )}
         </Space>
       </div>
 
