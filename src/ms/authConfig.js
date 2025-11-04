@@ -12,7 +12,7 @@ import { LogLevel } from '@azure/msal-browser';
  *
  * ENVIRONMENT CONFIGURATION:
  * - Development (npm run dev): Uses http://localhost:3000
- * - Production (npm run build): Uses https://testportal.thegetgroup.co.nz
+ * - Production (npm run build): Uses https://portal.thegetgroup.co.nz
  * - Override: Create .env.local and set VITE_APP_REDIRECT_URI
  */
 
@@ -34,7 +34,7 @@ const getRedirectUri = () => {
   }
 
   // Production fallback
-  return 'https://testportal.thegetgroup.co.nz';
+  return 'https://portal.thegetgroup.co.nz';
 };
 
 export const msalConfig = {
