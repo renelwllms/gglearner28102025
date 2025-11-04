@@ -12,7 +12,8 @@ import { LogLevel } from '@azure/msal-browser';
  *
  * ENVIRONMENT CONFIGURATION:
  * - Development (npm run dev): Uses http://localhost:3000
- * - Production (npm run build): Uses https://portal.thegetgroup.co.nz
+ * - Production (npm run build): Dynamically uses current domain (window.location.origin)
+ *   This allows the app to work on both portal.thegetgroup.co.nz and testportal.thegetgroup.co.nz
  * - Override: Create .env.local and set VITE_APP_REDIRECT_URI
  */
 
@@ -20,7 +21,7 @@ export const adminName = ['Admin'];
 
 /**
  * Automatically detect environment and set redirect URI
- * Priority: Environment variable > Auto-detect mode > Fallback
+ * Priority: Environment variable > Current origin (runtime) > Auto-detect mode > Fallback
  */
 const getRedirectUri = () => {
   // Use environment variable if set, otherwise auto-detect
@@ -28,12 +29,18 @@ const getRedirectUri = () => {
     return import.meta.env.VITE_APP_REDIRECT_URI;
   }
 
-  // Fallback: auto-detect based on environment
+  // In production, use the current origin dynamically
+  // This allows the app to work on both portal and testportal domains
+  if (!import.meta.env.DEV && typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+
+  // Development fallback
   if (import.meta.env.DEV) {
     return 'http://localhost:3000';
   }
 
-  // Production fallback
+  // Production fallback (SSR or edge cases)
   return 'https://portal.thegetgroup.co.nz';
 };
 
