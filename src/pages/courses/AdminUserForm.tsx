@@ -28,8 +28,10 @@ const DataAddForm = ({ rowData, onOk , onCancel }) => {
       setId(0);
       setIsActive(false);
       form.resetFields();
+      // Set default role to 'User' for new users
+      form.setFieldValue('UserRole', 'User');
     }
-    
+
   }, [rowData]);
 
   const handleReset = () => {
@@ -41,13 +43,13 @@ const DataAddForm = ({ rowData, onOk , onCancel }) => {
       adminUser
         .Update({
           ...values,
-          MarkAsDefault: isActive,
+          IsActive: isActive,
           Id: Id
         })
         .then((res) => {
           if (res?.data) {
             Message.success('success');
-            onOk();
+            onOk(values.Name);
           }
         })
         .finally(() => {
@@ -64,7 +66,7 @@ const DataAddForm = ({ rowData, onOk , onCancel }) => {
         .then((res) => {
           if (res?.data) {
             Message.success('success');
-            onOk();
+            onOk(values.Name);
           }
         })
         .finally(() => {
@@ -103,11 +105,11 @@ const DataAddForm = ({ rowData, onOk , onCancel }) => {
       <Form.Item
         label={'User Role'}
         field="UserRole"
+        rules={[{ required: true, message: 'Please select a user role' }]}
       >
         <Select
-          allowClear
           options={['Admin', 'User']}
-          placeholder="please enter"
+          placeholder="Select user role"
         />
       </Form.Item>
       <FormItem

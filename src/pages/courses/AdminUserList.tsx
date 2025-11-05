@@ -99,6 +99,19 @@ const AdminUserList = () => {
       key: 'Email',
     },
     {
+      title: 'Role',
+      dataIndex: 'UserRole',
+      key: 'UserRole',
+      render: (role) => (
+        <span style={{
+          fontWeight: role === 'Admin' ? 'bold' : 'normal',
+          color: role === 'Admin' ? '#165DFF' : '#4E5969'
+        }}>
+          {role || 'User'}
+        </span>
+      )
+    },
+    {
       title: 'Active',
       dataIndex: 'IsActive',
       render: (_, record) => (
