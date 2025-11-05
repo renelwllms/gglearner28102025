@@ -12,29 +12,39 @@ const { Option } = Select;
 
 // Available fields that can be selected for the report
 const AVAILABLE_FIELDS = [
-  { key: 'StudentID', label: 'Student ID', dataType: 'number' },
-  { key: 'FirstName', label: 'First Name', dataType: 'string' },
-  { key: 'LastName', label: 'Last Name', dataType: 'string' },
-  { key: 'Email', label: 'Email', dataType: 'string' },
-  { key: 'PhoneNumber', label: 'Phone Number', dataType: 'string' },
-  { key: 'DateOfBirth', label: 'Date of Birth', dataType: 'date' },
-  { key: 'Gender', label: 'Gender', dataType: 'string' },
-  { key: 'Ethnicity', label: 'Ethnicity', dataType: 'string' },
-  { key: 'School', label: 'School', dataType: 'string' },
-  { key: 'SchoolNumber', label: 'School Number', dataType: 'string' },
-  { key: 'Tutor', label: 'Tutor', dataType: 'string' },
-  { key: 'Status', label: 'Status', dataType: 'string' },
-  { key: 'AssignedTo', label: 'Assigned To', dataType: 'string' },
-  { key: 'Fees', label: 'Fees', dataType: 'string' },
-  { key: 'Region', label: 'Region', dataType: 'string' },
-  { key: 'City', label: 'City', dataType: 'string' },
-  { key: 'StreetAddress', label: 'Street Address', dataType: 'string' },
-  { key: 'Zipcode', label: 'Zipcode', dataType: 'string' },
-  { key: 'CreateDate', label: 'Registration Date', dataType: 'date' },
-  { key: 'WorkbookOption', label: 'Workbook Option', dataType: 'string' },
-  { key: 'TeacherName', label: 'Teacher Name', dataType: 'string' },
-  { key: 'TeacherEmail', label: 'Teacher Email', dataType: 'string' },
-  { key: 'InvoiceEmail', label: 'Invoice Email', dataType: 'string' },
+  // Student Information
+  { key: 'StudentID', label: 'Student ID', dataType: 'number', category: 'Student' },
+  { key: 'FirstName', label: 'First Name', dataType: 'string', category: 'Student' },
+  { key: 'LastName', label: 'Last Name', dataType: 'string', category: 'Student' },
+  { key: 'Email', label: 'Email', dataType: 'string', category: 'Student' },
+  { key: 'PhoneNumber', label: 'Phone Number', dataType: 'string', category: 'Student' },
+  { key: 'DateOfBirth', label: 'Date of Birth', dataType: 'date', category: 'Student' },
+  { key: 'Gender', label: 'Gender', dataType: 'string', category: 'Student' },
+  { key: 'Ethnicity', label: 'Ethnicity', dataType: 'string', category: 'Student' },
+  { key: 'School', label: 'School', dataType: 'string', category: 'Student' },
+  { key: 'SchoolNumber', label: 'School Number', dataType: 'string', category: 'Student' },
+  { key: 'Tutor', label: 'Tutor', dataType: 'string', category: 'Student' },
+  { key: 'Status', label: 'Status', dataType: 'string', category: 'Student' },
+  { key: 'AssignedTo', label: 'Assigned To', dataType: 'string', category: 'Student' },
+  { key: 'Fees', label: 'Fees', dataType: 'string', category: 'Student' },
+  { key: 'Region', label: 'Region', dataType: 'string', category: 'Student' },
+  { key: 'City', label: 'City', dataType: 'string', category: 'Student' },
+  { key: 'StreetAddress', label: 'Street Address', dataType: 'string', category: 'Student' },
+  { key: 'Zipcode', label: 'Zipcode', dataType: 'string', category: 'Student' },
+  { key: 'CreateDate', label: 'Registration Date', dataType: 'date', category: 'Student' },
+  { key: 'WorkbookOption', label: 'Workbook Option', dataType: 'string', category: 'Student' },
+  { key: 'TeacherName', label: 'Teacher Name', dataType: 'string', category: 'Student' },
+  { key: 'TeacherEmail', label: 'Teacher Email', dataType: 'string', category: 'Student' },
+  { key: 'InvoiceEmail', label: 'Invoice Email', dataType: 'string', category: 'Student' },
+
+  // Course Enrollment Information
+  { key: 'CourseName', label: 'Course Name', dataType: 'string', category: 'Course' },
+  { key: 'CourseLevel', label: 'Course Level', dataType: 'number', category: 'Course' },
+  { key: 'CourseCredits', label: 'Course Credits', dataType: 'number', category: 'Course' },
+  { key: 'CourseType', label: 'Course Type', dataType: 'string', category: 'Course' },
+  { key: 'CourseStatus', label: 'Course Status', dataType: 'string', category: 'Course' },
+  { key: 'EnrollmentDate', label: 'Enrollment Date', dataType: 'date', category: 'Course' },
+  { key: 'LearnerType', label: 'Learner Type', dataType: 'number', category: 'Course' },
 ];
 
 function Report7() {
@@ -63,16 +73,36 @@ function Report7() {
   const [filterRegions, setFilterRegions] = useState<string[]>([]);
   const [filterEthnicities, setFilterEthnicities] = useState<string[]>([]);
 
+  // Course filter options
+  const [filterCourseNames, setFilterCourseNames] = useState<string[]>([]);
+  const [filterCourseTypes, setFilterCourseTypes] = useState<string[]>([]);
+  const [filterCourseStatuses, setFilterCourseStatuses] = useState<string[]>([]);
+  const [filterCourseLevels, setFilterCourseLevels] = useState<string[]>([]);
+
   // Dropdown options
   const [schoolOptions, setSchoolOptions] = useState([]);
   const [tutorOptions, setTutorOptions] = useState([]);
   const [regionOptions, setRegionOptions] = useState([]);
+  const [courseOptions, setCourseOptions] = useState([]);
   const [ethnicityOptions] = useState([
     'NZ European', 'Maori', 'Cook Island Maori', 'Niuean', 'Samoan',
     'Tongan', 'Fijian', 'Tokelauan', 'Chinese', 'Indian', 'Japanese',
     'Korean', 'Vietnamese', 'Filipino', 'Malaysian', 'Indonesian', 'Thai',
     'Middle Eastern/Latin American/African', 'Other'
   ]);
+  const [courseTypeOptions] = useState([
+    'Work & Life Skills',
+    'Farming & Horticulture',
+    'Workshop'
+  ]);
+  const [courseStatusOptions] = useState([
+    'Achieved',
+    'In Progress',
+    'Withdrawn',
+    'Not Achieved',
+    'Pending'
+  ]);
+  const [courseLevelOptions] = useState(['1', '2', '3', '4', '5', '6', '7']);
 
   // Load dropdown options on mount
   useEffect(() => {
@@ -80,6 +110,7 @@ function Report7() {
       loadSchools();
       loadTutors();
       loadRegions();
+      loadCourses();
     }
   }, [token]);
 
@@ -131,6 +162,22 @@ function Report7() {
     }
   };
 
+  const loadCourses = async () => {
+    try {
+      const res = await services.g.getCourseList();
+      if (res.code === 0) {
+        const sorted = (res.data || []).sort((a, b) => {
+          const nameA = a.CourseName?.toLowerCase() || '';
+          const nameB = b.CourseName?.toLowerCase() || '';
+          return nameA.localeCompare(nameB);
+        });
+        setCourseOptions(sorted);
+      }
+    } catch (error) {
+      console.error('Error loading courses:', error);
+    }
+  };
+
   useEffect(() => {
     // Build columns based on selected fields
     const tableColumns = selectedFields.map((fieldKey) => {
@@ -170,6 +217,18 @@ function Report7() {
     if (!selectedFields.includes('Ethnicity')) {
       setFilterEthnicities([]);
     }
+    if (!selectedFields.includes('CourseName')) {
+      setFilterCourseNames([]);
+    }
+    if (!selectedFields.includes('CourseType')) {
+      setFilterCourseTypes([]);
+    }
+    if (!selectedFields.includes('CourseStatus')) {
+      setFilterCourseStatuses([]);
+    }
+    if (!selectedFields.includes('CourseLevel')) {
+      setFilterCourseLevels([]);
+    }
   }, [selectedFields]);
 
   const getList = () => {
@@ -198,6 +257,20 @@ function Report7() {
     }
     if (filterEthnicities.length > 0) {
       params.ethnicities = filterEthnicities.join(',');
+    }
+
+    // Add course filter parameters
+    if (filterCourseNames.length > 0) {
+      params.courseNames = filterCourseNames.join(',');
+    }
+    if (filterCourseTypes.length > 0) {
+      params.courseTypes = filterCourseTypes.join(',');
+    }
+    if (filterCourseStatuses.length > 0) {
+      params.courseStatuses = filterCourseStatuses.join(',');
+    }
+    if (filterCourseLevels.length > 0) {
+      params.courseLevels = filterCourseLevels.join(',');
     }
 
     console.log('Starting Report 7 API call with params:', params);
@@ -261,6 +334,7 @@ function Report7() {
 
   const handleClearAll = () => {
     setSelectedFields([]);
+    setData([]);
   };
 
   return (
@@ -456,6 +530,106 @@ function Report7() {
                   .map((ethnicity) => (
                     <Option key={ethnicity} value={ethnicity}>
                       {ethnicity}
+                    </Option>
+                  ))}
+              </Select>
+            </div>
+          )}
+
+          {selectedFields.includes('CourseName') && (
+            <div>
+              <Typography.Text style={{ marginRight: 8 }}>Course Name:</Typography.Text>
+              <Select
+                mode="multiple"
+                placeholder="Select courses"
+                style={{ width: 300 }}
+                size="small"
+                allowClear
+                showSearch
+                maxTagCount={2}
+                value={filterCourseNames}
+                onChange={(value) => setFilterCourseNames(value)}
+                filterOption={(inputValue, option) => {
+                  return option.props.children?.toLowerCase().includes(inputValue.toLowerCase());
+                }}
+              >
+                {courseOptions
+                  .filter(course => !filterCourseNames.includes(course.CourseName))
+                  .map((course) => (
+                    <Option key={course.CourseID} value={course.CourseName}>
+                      {course.CourseName}
+                    </Option>
+                  ))}
+              </Select>
+            </div>
+          )}
+
+          {selectedFields.includes('CourseType') && (
+            <div>
+              <Typography.Text style={{ marginRight: 8 }}>Course Type:</Typography.Text>
+              <Select
+                mode="multiple"
+                placeholder="Select course types"
+                style={{ width: 250 }}
+                size="small"
+                allowClear
+                maxTagCount={2}
+                value={filterCourseTypes}
+                onChange={(value) => setFilterCourseTypes(value)}
+              >
+                {courseTypeOptions
+                  .filter(courseType => !filterCourseTypes.includes(courseType))
+                  .map((courseType) => (
+                    <Option key={courseType} value={courseType}>
+                      {courseType}
+                    </Option>
+                  ))}
+              </Select>
+            </div>
+          )}
+
+          {selectedFields.includes('CourseStatus') && (
+            <div>
+              <Typography.Text style={{ marginRight: 8 }}>Course Status:</Typography.Text>
+              <Select
+                mode="multiple"
+                placeholder="Select course statuses"
+                style={{ width: 250 }}
+                size="small"
+                allowClear
+                maxTagCount={2}
+                value={filterCourseStatuses}
+                onChange={(value) => setFilterCourseStatuses(value)}
+              >
+                {courseStatusOptions
+                  .filter(courseStatus => !filterCourseStatuses.includes(courseStatus))
+                  .map((courseStatus) => (
+                    <Option key={courseStatus} value={courseStatus}>
+                      {courseStatus}
+                    </Option>
+                  ))}
+              </Select>
+            </div>
+          )}
+
+          {selectedFields.includes('CourseLevel') && (
+            <div>
+              <Typography.Text style={{ marginRight: 8 }}>Course Level:</Typography.Text>
+              <Select
+                mode="multiple"
+                placeholder="Select course levels"
+                style={{ width: 200 }}
+                size="small"
+                allowClear
+                maxTagCount={3}
+                value={filterCourseLevels}
+                onChange={(value) => setFilterCourseLevels(value)}
+              >
+                {courseLevelOptions
+                  .filter(courseLevel => !filterCourseLevels.includes(courseLevel))
+                  .map((courseLevel) => (
+                    <Option key={courseLevel} value={courseLevel}>
+                      Level {courseLevel}
                     </Option>
                   ))}
               </Select>
