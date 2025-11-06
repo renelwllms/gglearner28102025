@@ -9,12 +9,15 @@ import {
   Tabs,
   Typography,
   Tag,
+  Input,
+  Form,
 } from '@arco-design/web-react';
 import * as services from '@/services';
 import { IconRefresh, IconSave } from '@arco-design/web-react/icon';
 
 const { Title, Text } = Typography;
 const TabPane = Tabs.TabPane;
+const FormItem = Form.Item;
 
 const CATEGORIES = [
   { label: 'Work & Life Skills', value: 'Work & Life Skills' },
@@ -27,9 +30,12 @@ const RemoteRegistrationCategories = () => {
   const [unitStandards, setUnitStandards] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState<{ type: 'course' | 'unit', id: number } | null>(null);
+  const [notificationSettings, setNotificationSettings] = useState<{ [key: string]: string }>({});
+  const [savingEmail, setSavingEmail] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
+    fetchNotificationSettings();
   }, []);
 
   const fetchData = async () => {
@@ -51,6 +57,65 @@ const RemoteRegistrationCategories = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchNotificationSettings = async () => {
+    try {
+      const res = await services.course.getCategoryNotificationSettings();
+      if (res?.code === 0) {
+        const settings = {};
+        (res.data || []).forEach(item => {
+          settings[item.CategoryName] = item.NotificationEmail || '';
+        });
+        setNotificationSettings(settings);
+      } else if (res?.code === 1) {
+        // Table doesn't exist
+        Notification.error({
+          title: 'Database Setup Required',
+          content: res.message || 'Please run the database setup script first.',
+          duration: 10000,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to load notification settings:', error);
+      Notification.error({
+        title: 'Error',
+        content: 'Failed to load notification settings. Please check the console for details.',
+        duration: 5000,
+      });
+    }
+  };
+
+  const handleUpdateNotificationEmail = async (categoryName: string, email: string) => {
+    setSavingEmail(categoryName);
+    try {
+      const res = await services.course.updateCategoryNotificationEmail({
+        CategoryName: categoryName,
+        NotificationEmail: email || null,
+      });
+
+      if (res?.code === 0) {
+        Notification.success({
+          title: 'Success',
+          content: 'Notification email updated successfully',
+          duration: 3000,
+        });
+
+        setNotificationSettings(prev => ({
+          ...prev,
+          [categoryName]: email,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to update notification email:', error);
+      Notification.error({
+        title: 'Update Failed',
+        content: 'Failed to update notification email. Please try again.',
+        duration: 5000,
+      });
+    } finally {
+      setSavingEmail(null);
     }
   };
 
@@ -266,6 +331,83 @@ const RemoteRegistrationCategories = () => {
           </Text>
         </div>
       </div>
+
+      <Card
+        title="Notification Settings"
+        style={{ marginBottom: 20 }}
+        bordered
+      >
+        <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+          Configure the notification email address for remote learner registrations. When a student registers through the remote registration page,
+          a notification with all selected courses from both pathways will be sent to this email address.
+        </Text>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Card style={{ backgroundColor: '#f7f8fa' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Text strong style={{ minWidth: 180 }}>
+                Notification Email:
+              </Text>
+              <Input
+                placeholder="Enter notification email address"
+                value={notificationSettings['Work & Life Skills'] || ''}
+                onChange={(value) => {
+                  setNotificationSettings(prev => ({
+                    ...prev,
+                    'Work & Life Skills': value,
+                    'Farming & Horticulture': value, // Keep both in sync
+                  }));
+                }}
+                style={{ flex: 1 }}
+              />
+              <Button
+                type="primary"
+                icon={<IconSave />}
+                loading={savingEmail === 'RemoteRegistration'}
+                onClick={async () => {
+                  setSavingEmail('RemoteRegistration');
+                  try {
+                    const email = notificationSettings['Work & Life Skills'];
+                    // Update both categories with the same email
+                    await Promise.all([
+                      services.course.updateCategoryNotificationEmail({
+                        CategoryName: 'Work & Life Skills',
+                        NotificationEmail: email || null,
+                      }),
+                      services.course.updateCategoryNotificationEmail({
+                        CategoryName: 'Farming & Horticulture',
+                        NotificationEmail: email || null,
+                      }),
+                    ]);
+
+                    Notification.success({
+                      title: 'Success',
+                      content: 'Notification email updated successfully',
+                      duration: 3000,
+                    });
+
+                    setNotificationSettings({
+                      'Work & Life Skills': email,
+                      'Farming & Horticulture': email,
+                    });
+                  } catch (error) {
+                    console.error('Failed to update notification email:', error);
+                    Notification.error({
+                      title: 'Update Failed',
+                      content: 'Failed to update notification email. Please try again.',
+                      duration: 5000,
+                    });
+                  } finally {
+                    setSavingEmail(null);
+                  }
+                }}
+              >
+                Save
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </Card>
 
       <Tabs defaultActiveTab="1">
         <TabPane key="1" title={`Courses (${courses.length})`}>

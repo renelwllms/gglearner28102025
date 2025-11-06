@@ -80,4 +80,16 @@ export const course = {
     return res;
   },
 
+  // Get category notification settings
+  async getCategoryNotificationSettings() {
+    const res = await request(api.getCategoryNotificationSettings);
+    return res;
+  },
+
+  // Update category notification email
+  async updateCategoryNotificationEmail(params) {
+    const res = await request(api.updateCategoryNotificationEmail, params);
+    return res;
+  },
+
 };

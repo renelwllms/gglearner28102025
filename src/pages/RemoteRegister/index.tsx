@@ -50,7 +50,7 @@ const RemoteRegister = () => {
   const [selectedExistingStudent, setSelectedExistingStudent] = useState<number | null>(null);
   const [courses, setCourses] = useState<any[]>([]);
   const [unitStandards, setUnitStandards] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [formData, setFormData] = useState<any>({});
   const [pendingStepAdvance, setPendingStepAdvance] = useState(false);
   const [schoolOptions, setSchoolOptions] = useState<any[]>([]);
@@ -60,7 +60,7 @@ const RemoteRegister = () => {
   const stepFields = {
     0: ['FirstName', 'LastName', 'DateOfBirth', 'Gender', 'Ethnicity', 'PhoneNumber', 'Email', 'School'],
     1: ['TeacherName', 'TeacherEmail', 'InvoiceEmail', 'StreetAddress', 'City', 'Region', 'Zipcode', 'WorkbookOption', 'NZQAPreference'],
-    2: ['CourseCategory', 'SelectedCourses', 'CustomCourse', 'AdditionalInfo'],
+    2: ['CourseCategories', 'SelectedWorkLifeCourses', 'SelectedFarmingUnits', 'CustomCourse', 'AdditionalInfo'],
     3: ['Agreement']
   };
 
@@ -90,21 +90,26 @@ const RemoteRegister = () => {
     }
   };
 
-  // Load courses and unit standards when category changes
+  // Load courses and unit standards when categories change
   useEffect(() => {
-    if (selectedCategory) {
-      loadCourses(selectedCategory);
-      loadUnitStandards(selectedCategory);
+    if (selectedCategories.length > 0) {
+      selectedCategories.forEach(category => {
+        if (category === 'Work & Life Skills') {
+          loadCourses(category);
+        } else if (category === 'Farming & Horticulture') {
+          loadUnitStandards(category);
+        }
+      });
     }
-  }, [selectedCategory]);
+  }, [selectedCategories]);
 
   // Initialize form with saved data when navigating between steps
   useEffect(() => {
     if (Object.keys(formData).length > 0) {
       form.setFieldsValue(formData);
-      // Restore selected category if it exists
-      if (formData.CourseCategory) {
-        setSelectedCategory(formData.CourseCategory);
+      // Restore selected categories if they exist
+      if (formData.CourseCategories) {
+        setSelectedCategories(formData.CourseCategories);
       }
     }
   }, [current, formData]);
@@ -276,15 +281,18 @@ const RemoteRegister = () => {
         console.log('Enrolling existing student ID:', existingStudentID);
       }
 
+      // Send all data in one request
       const res = await axios.post('/api/student/remoteRegister', finalData);
 
       if (res.data.code === 0) {
-        Message.success(res.data.data.message || 'Registration successful!');
+        const { StudentID, EnrolledCount } = res.data.data;
+        Message.success('Registration successful!');
         Modal.success({
           title: 'Registration Successful!',
           content: (
             <div>
               <p>Thank you for registering with The GET Group!</p>
+              <p>You have been enrolled in {EnrolledCount || 0} courses/unit standards.</p>
               <p>You will receive:</p>
               <ul>
                 <li>A welcome email with course details</li>
@@ -292,7 +300,7 @@ const RemoteRegister = () => {
                 <li>Further instructions from your assigned tutor</li>
               </ul>
               <p style={{ marginTop: 16, fontWeight: 'bold' }}>
-                Student ID: {res.data.data.StudentID}
+                Student ID: {StudentID}
               </p>
             </div>
           ),
@@ -454,67 +462,95 @@ const RemoteRegister = () => {
 
   const renderCourseSelection = () => (
     <div className={styles.stepContent}>
-      <h2 className={styles.stepTitle}>Choose Your Pathway</h2>
+      <h2 className={styles.stepTitle}>Choose Your Pathway(s)</h2>
       <p className={styles.stepDescription}>
-        Select the category that interests you most
+        Select one or both pathways that interest you
       </p>
 
-      <FormItem field="CourseCategory" rules={[{ required: true }]}>
-        <RadioGroup
-          onChange={(value) => setSelectedCategory(value)}
-          style={{ width: '100%' }}
+      <FormItem field="CourseCategories" rules={[{ required: true, type: 'array', minLength: 1, message: 'Please select at least one pathway' }]}>
+        <Checkbox.Group
+          onChange={(values) => setSelectedCategories(values as string[])}
+          style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}
         >
           <Card className={styles.categoryCard}>
-            <Radio value="Work & Life Skills">
+            <Checkbox value="Work & Life Skills">
               <div className={styles.categoryContent}>
                 <h3>Work & Life Skills</h3>
                 <p>Build essential skills for work and everyday life</p>
               </div>
-            </Radio>
+            </Checkbox>
           </Card>
 
           <Card className={styles.categoryCard}>
-            <Radio value="Farming & Horticulture">
+            <Checkbox value="Farming & Horticulture">
               <div className={styles.categoryContent}>
                 <h3>Farming & Horticulture</h3>
                 <p>Learn practical skills for agriculture and horticulture</p>
               </div>
-            </Radio>
+            </Checkbox>
           </Card>
-        </RadioGroup>
+        </Checkbox.Group>
       </FormItem>
 
-      {selectedCategory && (
+      {selectedCategories.length > 0 && (
         <>
           <Divider />
-          <h3 className={styles.sectionTitle}>
-            {selectedCategory === 'Work & Life Skills'
-              ? 'Select Your Courses'
-              : 'Select Unit Standards'}
-          </h3>
-          <p className={styles.helpText}>
-            Choose one or more options below, or describe a custom course
-          </p>
 
-          <FormItem field="SelectedCourses">
-            <Checkbox.Group style={{ width: '100%' }}>
-              {(selectedCategory === 'Farming & Horticulture'
-                ? unitStandards
-                : courses
-              ).map((item: any) => (
-                <div key={item.UnitStandardID || item.CourseID} className={styles.courseOption}>
-                  <Checkbox value={item.UnitStandardID || item.CourseID}>
-                    {item.USName || item.CourseName}
-                    {(item.USCredits || item.CourseCredits) && (
-                      <Tag style={{ marginLeft: 8 }}>{item.USCredits || item.CourseCredits} credits</Tag>
-                    )}
-                  </Checkbox>
-                </div>
-              ))}
-            </Checkbox.Group>
-          </FormItem>
+          {selectedCategories.includes('Work & Life Skills') && (
+            <>
+              <h3 className={styles.sectionTitle}>
+                Work & Life Skills Courses
+              </h3>
+              <p className={styles.helpText}>
+                Choose one or more courses below
+              </p>
 
-          <Divider />
+              <FormItem field="SelectedWorkLifeCourses">
+                <Checkbox.Group style={{ width: '100%' }}>
+                  {courses.map((item: any) => (
+                    <div key={item.CourseID} className={styles.courseOption}>
+                      <Checkbox value={item.CourseID}>
+                        {item.CourseName}
+                        {item.CourseCredits && (
+                          <Tag style={{ marginLeft: 8 }}>{item.CourseCredits} credits</Tag>
+                        )}
+                      </Checkbox>
+                    </div>
+                  ))}
+                </Checkbox.Group>
+              </FormItem>
+
+              <Divider />
+            </>
+          )}
+
+          {selectedCategories.includes('Farming & Horticulture') && (
+            <>
+              <h3 className={styles.sectionTitle}>
+                Farming & Horticulture Unit Standards
+              </h3>
+              <p className={styles.helpText}>
+                Choose one or more unit standards below
+              </p>
+
+              <FormItem field="SelectedFarmingUnits">
+                <Checkbox.Group style={{ width: '100%' }}>
+                  {unitStandards.map((item: any) => (
+                    <div key={item.UnitStandardID} className={styles.courseOption}>
+                      <Checkbox value={item.UnitStandardID}>
+                        {item.US} - {item.USName}
+                        {item.USCredits && (
+                          <Tag style={{ marginLeft: 8 }}>{item.USCredits} credits</Tag>
+                        )}
+                      </Checkbox>
+                    </div>
+                  ))}
+                </Checkbox.Group>
+              </FormItem>
+
+              <Divider />
+            </>
+          )}
 
           <FormItem label="Custom Course (Optional)" field="CustomCourse">
             <TextArea
@@ -572,9 +608,21 @@ const RemoteRegister = () => {
             <strong>{formData.Email || 'Not provided'}</strong>
           </div>
           <div className={styles.summaryItem}>
-            <span>Category:</span>
-            <strong>{formData.CourseCategory || 'Not provided'}</strong>
+            <span>Pathway(s):</span>
+            <strong>{formData.CourseCategories?.join(', ') || 'Not provided'}</strong>
           </div>
+          {formData.SelectedWorkLifeCourses && formData.SelectedWorkLifeCourses.length > 0 && (
+            <div className={styles.summaryItem}>
+              <span>Work & Life Skills Courses:</span>
+              <strong>{formData.SelectedWorkLifeCourses.length} selected</strong>
+            </div>
+          )}
+          {formData.SelectedFarmingUnits && formData.SelectedFarmingUnits.length > 0 && (
+            <div className={styles.summaryItem}>
+              <span>Farming & Horticulture Units:</span>
+              <strong>{formData.SelectedFarmingUnits.length} selected</strong>
+            </div>
+          )}
         </div>
       </div>
     );

@@ -82,4 +82,16 @@ export default {
     url: '/api/course/updateUnitStandardCategory',
     method: 'put',
   },
+
+  // Get category notification settings
+  getCategoryNotificationSettings: {
+    url: '/api/course/getCategoryNotificationSettings',
+    method: 'get',
+  },
+
+  // Update category notification email
+  updateCategoryNotificationEmail: {
+    url: '/api/course/updateCategoryNotificationEmail',
+    method: 'put',
+  },
 };
