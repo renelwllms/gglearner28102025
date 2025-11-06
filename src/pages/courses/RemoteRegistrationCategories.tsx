@@ -30,8 +30,8 @@ const RemoteRegistrationCategories = () => {
   const [unitStandards, setUnitStandards] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState<{ type: 'course' | 'unit', id: number } | null>(null);
-  const [notificationSettings, setNotificationSettings] = useState<{ [key: string]: string }>({});
-  const [savingEmail, setSavingEmail] = useState<string | null>(null);
+  const [notificationEmail, setNotificationEmail] = useState<string>('');
+  const [savingEmail, setSavingEmail] = useState<boolean>(false);
 
   useEffect(() => {
     fetchData();
@@ -64,11 +64,7 @@ const RemoteRegistrationCategories = () => {
     try {
       const res = await services.course.getCategoryNotificationSettings();
       if (res?.code === 0) {
-        const settings = {};
-        (res.data || []).forEach(item => {
-          settings[item.CategoryName] = item.NotificationEmail || '';
-        });
-        setNotificationSettings(settings);
+        setNotificationEmail(res.data?.NotificationEmail || '');
       } else if (res?.code === 1) {
         // Table doesn't exist
         Notification.error({
@@ -87,12 +83,11 @@ const RemoteRegistrationCategories = () => {
     }
   };
 
-  const handleUpdateNotificationEmail = async (categoryName: string, email: string) => {
-    setSavingEmail(categoryName);
+  const handleUpdateNotificationEmail = async () => {
+    setSavingEmail(true);
     try {
       const res = await services.course.updateCategoryNotificationEmail({
-        CategoryName: categoryName,
-        NotificationEmail: email || null,
+        NotificationEmail: notificationEmail || null,
       });
 
       if (res?.code === 0) {
@@ -101,11 +96,6 @@ const RemoteRegistrationCategories = () => {
           content: 'Notification email updated successfully',
           duration: 3000,
         });
-
-        setNotificationSettings(prev => ({
-          ...prev,
-          [categoryName]: email,
-        }));
       }
     } catch (error) {
       console.error('Failed to update notification email:', error);
@@ -115,7 +105,7 @@ const RemoteRegistrationCategories = () => {
         duration: 5000,
       });
     } finally {
-      setSavingEmail(null);
+      setSavingEmail(false);
     }
   };
 
@@ -350,57 +340,15 @@ const RemoteRegistrationCategories = () => {
               </Text>
               <Input
                 placeholder="Enter notification email address"
-                value={notificationSettings['Work & Life Skills'] || ''}
-                onChange={(value) => {
-                  setNotificationSettings(prev => ({
-                    ...prev,
-                    'Work & Life Skills': value,
-                    'Farming & Horticulture': value, // Keep both in sync
-                  }));
-                }}
+                value={notificationEmail}
+                onChange={(value) => setNotificationEmail(value)}
                 style={{ flex: 1 }}
               />
               <Button
                 type="primary"
                 icon={<IconSave />}
-                loading={savingEmail === 'RemoteRegistration'}
-                onClick={async () => {
-                  setSavingEmail('RemoteRegistration');
-                  try {
-                    const email = notificationSettings['Work & Life Skills'];
-                    // Update both categories with the same email
-                    await Promise.all([
-                      services.course.updateCategoryNotificationEmail({
-                        CategoryName: 'Work & Life Skills',
-                        NotificationEmail: email || null,
-                      }),
-                      services.course.updateCategoryNotificationEmail({
-                        CategoryName: 'Farming & Horticulture',
-                        NotificationEmail: email || null,
-                      }),
-                    ]);
-
-                    Notification.success({
-                      title: 'Success',
-                      content: 'Notification email updated successfully',
-                      duration: 3000,
-                    });
-
-                    setNotificationSettings({
-                      'Work & Life Skills': email,
-                      'Farming & Horticulture': email,
-                    });
-                  } catch (error) {
-                    console.error('Failed to update notification email:', error);
-                    Notification.error({
-                      title: 'Update Failed',
-                      content: 'Failed to update notification email. Please try again.',
-                      duration: 5000,
-                    });
-                  } finally {
-                    setSavingEmail(null);
-                  }
-                }}
+                loading={savingEmail}
+                onClick={handleUpdateNotificationEmail}
               >
                 Save
               </Button>
